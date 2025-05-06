@@ -1,6 +1,7 @@
 /**
  * 地址：https://wp.gxnas.com/15067.html
  * 原始文件：https://raw.githubusercontent.com/Keywos/rule/main/rename.js
+ * 快捷参数：https://raw.githubusercontent.com/zfeny/scripts/refs/heads/main/sub_store/rename.js#bl=&blgd=&blpx=&flag=&name=%E8%B5%B7%E5%B8%86&nm=&nx=&one=&out=en
  * 更新日期：2024-04-05 15:30:15
  * 用法：Sub-Store 脚本操作添加
  * rename.js 以下是此脚本支持的参数，必须以 # 为开头多个参数使用"&"连接，参考上述地址为例使用参数。 禁用缓存url#noCache
@@ -41,7 +42,7 @@
  * [blockquic] blockquic=on 阻止; blockquic=off 不阻止
  */
 
-// const inArg = {'blkey':'iplc+GPT>GPTnewName+NF+IPLC'， 'flag':true };
+// const inArg = {'blkey':'iplc+GPT>GPTnewName+NF+IPLC', 'flag':true };
 const inArg = $arguments; // console.log(inArg)
 const nx = inArg.nx || false,
   bl = inArg.bl || false,
