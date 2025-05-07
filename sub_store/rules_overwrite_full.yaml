@@ -316,12 +316,13 @@ rules:
   - DOMAIN-SUFFIX,oracle.com,DIRECT
   - DOMAIN-SUFFIX,oraclecloud.com,DIRECT
 
-  - PROCESS-NAME,Termius.exe,DIRECT
-  - PROCESS-NAME,ZenlessZoneZero.exe,DIRECT
-  - PROCESS-NAME,OneDrive.exe,DIRECT
-  - PROCESS-NAME,StarRail.exe,DIRECT
   - PROCESS-NAME,HYP.exe,DIRECT
   - PROCESS-NAME,HYPHelper.exe,DIRECT
+  - PROCESS-NAME,OneDrive.exe,DIRECT
+  - PROCESS-NAME,ssh.exe,DIRECT
+  - PROCESS-NAME,StarRail.exe,DIRECT
+  - PROCESS-NAME,Termius.exe,DIRECT
+  - PROCESS-NAME,ZenlessZoneZero.exe,DIRECT
   - PROCESS-NAME,ZFGameBrowser.exe,DIRECT
 
 ## 规则组
