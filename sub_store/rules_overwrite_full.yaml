@@ -71,24 +71,32 @@ proxy-groups:
     filter: (套餐|流量)
     proxies:
       - '🍵日常低倍率'
-      - '☝️手动切换'
-      - '♻️自动选择'
+      - '🌍地区选择'
+      - '♻️全局自选'
       - '🏠国外家宽'
       - '🛑故障转移'
       - '📉下载专用'
       - DIRECT
-  - name: '☝️手动切换'
+  - name: '🌍地区选择'
     type: select
-    include-all: true
-    exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
+    proxies:
+      - '🇭🇰香港'
+      - '🇹🇼台湾'
+      - '🇯🇵日本'
+      - '🇰🇷韩国'
+      - '🇸🇬新加坡'
+      - '🇺🇸美国'
+      - '🌎南北美洲'
+      - '🇪🇺欧洲地区'
+      - '🥶冷门地区'
   - name: '🍵日常低倍率'
     type: url-test
     include-all: true
     url: 'http://www.gstatic.com/generate_204'
-    interval: 300
+    interval: 3600
     tolerance: 50
     exclude-filter: (?i)(GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置|x([2-9]|\d{2,})(\.\d+)?|(([2-9]|\d{2,})(\.\d+)?)[Xx×]|萌云)
-  - name: '♻️自动选择'
+  - name: '♻️全局自选'
     type: url-test
     include-all: true
     url: 'http://www.gstatic.com/generate_204'
@@ -96,11 +104,8 @@ proxy-groups:
     tolerance: 50
     exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
   - name: '🏠国外家宽'
-    type: url-test
+    type: select
     include-all: true
-    url: 'http://www.gstatic.com/generate_204'
-    interval: 3600
-    tolerance: 50
     filter: Fam
     exclude-filter: 香港|HK|🇭🇰
   - name: '🛑故障转移'
@@ -119,50 +124,58 @@ proxy-groups:
     type: url-test
     include-all: true
     url: 'http://www.gstatic.com/generate_204'
-    interval: 3600
-    filter: (?i)香港|HK|🇭🇰
+    interval: 86400
+    tolerance: 50
+    filter: 香港|HK|🇭🇰
   - name: '🇹🇼台湾'
     type: url-test
     include-all: true
     url: 'http://www.gstatic.com/generate_204'
-    interval: 3600
-    filter: (?i)台湾|TW|🇹🇼
+    interval: 86400
+    tolerance: 50
+    filter: 台湾|TW|🇹🇼
   - name: '🇯🇵日本'
     type: url-test
     include-all: true
     url: 'http://www.gstatic.com/generate_204'
-    interval: 3600
-    filter: (?i)日本|JP|🇯🇵
+    interval: 86400
+    tolerance: 50
+    filter: 日本|JP|🇯🇵
   - name: '🇰🇷韩国'
     type: url-test
     include-all: true
     url: 'http://www.gstatic.com/generate_204'
-    interval: 3600
-    filter: (?i)韩国|KR|🇰🇷
+    interval: 86400
+    tolerance: 50
+    filter: 韩国|KR|🇰🇷
   - name: '🇸🇬新加坡'
     type: url-test
     include-all: true
     url: 'http://www.gstatic.com/generate_204'
-    interval: 3600
-    filter: (?i)新加坡|SG|🇸🇬
+    interval: 86400
+    tolerance: 50
+    filter: 新加坡|SG|🇸🇬
   - name: '🇺🇸美国'
     type: url-test
     include-all: true
     url: 'http://www.gstatic.com/generate_204'
-    interval: 3600
-    filter: (?i)美国|US|🇺🇸
+    interval: 86400
+    tolerance: 50
+    filter: 美国|US|🇺🇸
   - name: '🌎南北美洲'
     type: url-test
     include-all: true
     url: 'http://www.gstatic.com/generate_204'
-    interval: 3600
-    filter: (?i)加拿大|CA|🇨🇦|巴西|BR|🇧🇷|智利|CL|🇨🇱
+    interval: 86400
+    tolerance: 50
+    filter: 加拿大|CA|🇨🇦|巴西|BR|🇧🇷|智利|CL|🇨🇱
   - name: '🇪🇺欧洲地区'
     type: url-test
     include-all: true
     url: 'http://www.gstatic.com/generate_204'
-    interval: 3600
-    filter: (?i)德国|DE|🇩🇪|法国|FR|🇫🇷|英国|GB|🇬🇧|荷兰|NL|🇳🇱|意大利|IT|🇮🇹
+    interval: 86400
+    tolerance: 50
+    filter: 德国|DE|🇩🇪|法国|FR|🇫🇷|英国|GB|🇬🇧|荷兰|NL|🇳🇱|意大利|IT|🇮🇹
   - name: '🥶冷门地区'
     type: url-test
     include-all: true
