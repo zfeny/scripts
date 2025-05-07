@@ -8,28 +8,33 @@ proxy-groups:
   #   proxies:
   - name: '🚀代理方案'
     type: select
-    include-all: false
+    filter: (套餐|流量)
     proxies:
-      - '♻️自动选择'
-      - '☝️手动切换'
       - '🛑故障转移'
+      - '♻️自动选择'
+      - '🍵低倍率节点'
+      - '☝️手动切换'
       - DIRECT
-    include-filter: (套餐|流量)
   - name: '☝️手动切换'
     type: select
-    include-all: true
     exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
+  - name: '🍵低倍率节点'
+    type: url-test
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 300
+    tolerance: 50
+    exclude-filter: (?i)(GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置|x([2-9]|\d{2,})(\.\d+)?|(([2-9]|\d{2,})(\.\d+)?)[Xx×])
   - name: '♻️自动选择'
-    include-all: true
     type: url-test
     url: 'http://www.gstatic.com/generate_204'
     interval: 86400
+    tolerance: 50
     exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
   - name: '🛑故障转移'
     type: fallback
+    include-all: true
     url: 'http://www.gstatic.com/generate_204'
     interval: 7200
-    include-all: true
 
 # 酷狗导入规则
 rules:
