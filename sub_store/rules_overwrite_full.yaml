@@ -80,12 +80,13 @@ proxy-groups:
     type: select
     include-all: true
     exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
-  - name: '🍵低倍率节点'
+  - name: '🍵日常低倍率'
     type: url-test
     include-all: true
     url: 'http://www.gstatic.com/generate_204'
     interval: 300
     tolerance: 50
+    filter: 7li7li
     exclude-filter: (?i)(GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置|x([2-9]|\d{2,})(\.\d+)?|(([2-9]|\d{2,})(\.\d+)?)[Xx×]|萌云)
   - name: '♻️自动选择'
     type: url-test
@@ -112,7 +113,7 @@ proxy-groups:
     type: url-test
     include-all: true
     url: 'http://www.gstatic.com/generate_204'
-    interval: 3600
+    interval: 300
     filter: (?i)(?:[x×倍])\s*0\.\d+|0\.\d+\s*(?:[x×倍])|Test|6bcloud|起帆
 
 rule-providers:
