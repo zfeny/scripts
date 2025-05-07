@@ -1,33 +1,24 @@
 proxy-groups:
-  # - name: '🚀节点选择'
-  #   type: select
-  #   proxies:
-  #     - '🚀手动切换'
-  #     - '♻️自动选择'
-  #     - '故障转移'
-  # - name: '🚀手动切换'
-  #   type: select
-  #   include-all: true
-  #   exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
-  #   proxies:
-  #     - DIRECT
+
   # - name: '♻️自动选择'
   #   type: url-test
   #   url: 'http://www.gstatic.com/generate_204'
   #   interval: 86400
   #   include-all: true
   #   proxies:
-
-
-  - name: '🚀节点选择'
+  - name: '🚀代理方案'
     type: select
     include-all: false
     proxies:
       - '♻️自动选择'
-      # - '🚀手动切换'
+      - '☝️手动切换'
       - '🛑故障转移'
       - DIRECT
-    filter: (套餐|流量)
+    include-filter: (套餐|流量)
+  - name: '☝️手动切换'
+    type: select
+    include-all: true
+    exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
   - name: '♻️自动选择'
     include-all: true
     type: url-test
