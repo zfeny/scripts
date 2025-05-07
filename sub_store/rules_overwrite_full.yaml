@@ -6,13 +6,8 @@ proxy-groups:
       - '故障转移'
   - name: '🚀手动切换'
     type: select
-    use: .*
-      # The .* implies using available proxies, 'use' keyword is for this in some formats, or just list them
-      # This behavior (select .*) is tricky. In standard Clash YAML, you list proxy names or provider names.
-      # Assuming it means all available proxies not already in specific groups.
-      # This will likely need manual adjustment based on actual available proxies/providers.
-      # For now, leaving it empty as direct conversion of '.*' is not standard.
-      # Consider creating a group that includes all your individual proxy nodes if that's the intent.
+    include-all: true
+    proxies:
   - name: '♻️自动选择'
     type: url-test
     url: 'http://www.gstatic.com/generate_204'
