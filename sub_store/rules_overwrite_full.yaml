@@ -1,25 +1,42 @@
 proxy-groups:
-  - name: '🚀节点选择'
+  # - name: '🚀节点选择'
+  #   type: select
+  #   proxies:
+  #     - '🚀手动切换'
+  #     - '♻️自动选择'
+  #     - '故障转移'
+  # - name: '🚀手动切换'
+  #   type: select
+  #   include-all: true
+  #   exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
+  #   proxies:
+  #     - DIRECT
+  # - name: '♻️自动选择'
+  #   type: url-test
+  #   url: 'http://www.gstatic.com/generate_204'
+  #   interval: 86400
+  #   include-all: true
+  #   proxies:
+  # - name: '故障转移'
+  #   type: fallback
+  #   url: 'http://www.gstatic.com/generate_204'
+  #   interval: 7200
+  #   include-all: true
+  #   proxies:
+
+  - name: Proxy
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Global.png
     type: select
+    include-all: false
     proxies:
-      - '🚀手动切换'
-      - '♻️自动选择'
-      - '故障转移'
-  - name: '🚀手动切换'
-    type: select
-    include-all: true
-    exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
-    proxies:
+      - AUTO
       - DIRECT
-  - name: '♻️自动选择'
+      - REJECT
+  - name: AUTO
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Speedtest.png
+    url: https://www.gstatic.com/generate_204
+    include-all: true
     type: url-test
-    url: 'http://www.gstatic.com/generate_204'
-    interval: 86400
-    include-all: true
-    proxies:
-  - name: '故障转移'
-    type: fallback
-    url: 'http://www.gstatic.com/generate_204'
-    interval: 7200
-    include-all: true
-    proxies:
+    interval: 600
+    timeout: 1500
+    tolerance: 50
