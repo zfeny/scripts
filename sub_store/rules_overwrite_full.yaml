@@ -273,5 +273,5 @@ rules:
   - RULE-SET,Github,🚀代理方案
   - GEOIP,private,DIRECT
   - GEOIP,CN,DIRECT
-  - MATCH,📉下载专用
+  - MATCH,🚀代理方案
   # - MATCH,DIRECT123
