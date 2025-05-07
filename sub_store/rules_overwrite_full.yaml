@@ -33,13 +33,11 @@ proxy-groups:
       - DIRECT
       - REJECT
   - name: '♻️自动选择'
-    url: https://www.gstatic.com/generate_204
     include-all: true
     type: url-test
-    interval: 600
-    timeout: 1500
-    tolerance: 50
-
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 86400
+    exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
 # 酷狗导入规则
 rules:
     - 'IP-CIDR,34.94.167.253/32,DIRECT,no-resolve'
