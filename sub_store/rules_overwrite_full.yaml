@@ -17,12 +17,7 @@ proxy-groups:
   #   interval: 86400
   #   include-all: true
   #   proxies:
-  # - name: '故障转移'
-  #   type: fallback
-  #   url: 'http://www.gstatic.com/generate_204'
-  #   interval: 7200
-  #   include-all: true
-  #   proxies:
+
 
   - name: '🚀节点选择'
     type: select
@@ -30,14 +25,21 @@ proxy-groups:
     proxies:
       - '♻️自动选择'
       # - '🚀手动切换'
+      - '🛑故障转移'
       - DIRECT
-      - REJECT
+    filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
   - name: '♻️自动选择'
     include-all: true
     type: url-test
     url: 'http://www.gstatic.com/generate_204'
     interval: 86400
     exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
+  - name: '🛑故障转移'
+    type: fallback
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 7200
+    include-all: true
+    
 # 酷狗导入规则
 rules:
     - 'IP-CIDR,34.94.167.253/32,DIRECT,no-resolve'
