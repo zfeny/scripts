@@ -208,4 +208,4 @@ rules:
   - GEOIP,private,DIRECT
   - GEOIP,CN,DIRECT
   - MATCH,📉下载专用
-  # - MATCH,DIRECT
+  # - MATCH,DIRECT123
