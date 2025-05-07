@@ -1,0 +1,534 @@
+# https://mihomo.party/docs/guide/override/yaml
+
+proxy-groups:
+  - name: Proxy
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Global.png
+    type: select
+    include-all: false
+    proxies:
+      - AUTO
+      - HK
+      - TW
+      - JP
+      - KR
+      - US
+      - DE
+      - SG
+      - FR
+      - UK
+      - DIRECT
+      - REJECT
+  - name: AUTO
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Speedtest.png
+    url: https://www.gstatic.com/generate_204
+    include-all: true
+    type: url-test
+    interval: 600
+    timeout: 1500
+    tolerance: 50
+  - name: Apple
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Apple.png
+    type: select
+    include-all: true
+    exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
+    proxies:
+      - DIRECT
+      - Proxy
+      - HK
+      - TW
+      - JP
+      - KR
+      - US
+      - DE
+      - SG
+      - FR
+      - UK
+      - REJECT
+  - name: Telegram
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Telegram.png
+    type: select
+    include-all: true
+    exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
+    proxies:
+      - Proxy
+      - HK
+      - TW
+      - JP
+      - KR
+      - US
+      - DE
+      - SG
+      - FR
+      - UK
+      - DIRECT
+      - REJECT
+  - name: YouTube
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/YouTube.png
+    exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
+    include-all: true
+    type: select
+    proxies:
+      - Proxy
+      - HK
+      - TW
+      - JP
+      - KR
+      - US
+      - DE
+      - SG
+      - FR
+      - UK
+      - DIRECT
+      - REJECT
+  - name: BiliBili
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/bilibili.png
+    exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
+    include-all: true
+    type: select
+    proxies:
+      - DIRECT
+      - Proxy
+      - REJECT
+      - HK
+      - TW
+      - JP
+      - KR
+      - US
+      - DE
+      - SG
+      - FR
+      - UK
+  - name: OpenAI
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/ChatGPT.png
+    type: select
+    include-all: true
+    exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
+    proxies:
+      - Proxy
+      - US
+      - TW
+      - JP
+      - KR
+      - HK
+      - DE
+      - SG
+      - FR
+      - UK
+      - DIRECT
+  - name: Gemini
+    icon: https://raw.githubusercontent.com/guaishouxiaoqi/icons/master/Color/Gemini.png
+    include-all: true
+    exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
+    type: select
+    proxies:
+      - Proxy
+      - HK
+      - TW
+      - JP
+      - KR
+      - US
+      - DE
+      - SG
+      - FR
+      - UK
+      - DIRECT
+  - name: Claude
+    icon: https://raw.githubusercontent.com/ke1ewang/Qi/master/Claude.png
+    type: select
+    include-all: true
+    exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
+    proxies:
+      - Proxy
+      - US
+      - TW
+      - JP
+      - KR
+      - HK
+      - DE
+      - SG
+      - FR
+      - UK
+      - DIRECT
+  - name: TikTok
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/TikTok.png
+    type: select
+    include-all: true
+    exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
+    proxies:
+      - TW
+      - Proxy
+      - HK
+      - JP
+      - KR
+      - US
+      - DE
+      - SG
+      - FR
+      - UK
+      - DIRECT
+  - name: Spotify
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Spotify.png
+    type: select
+    include-all: true
+    exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
+    proxies:
+      - Proxy
+      - HK
+      - TW
+      - JP
+      - KR
+      - US
+      - DE
+      - SG
+      - FR
+      - UK
+      - DIRECT
+  - name: Netflix
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Netflix.png
+    type: select
+    include-all: true
+    exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
+    proxies:
+      - Proxy
+      - HK
+      - TW
+      - JP
+      - KR
+      - US
+      - DE
+      - SG
+      - FR
+      - UK
+      - DIRECT
+  - name: Disney
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Disney.png
+    type: select
+    include-all: true
+    exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
+    proxies:
+      - Proxy
+      - HK
+      - TW
+      - JP
+      - KR
+      - US
+      - DE
+      - SG
+      - FR
+      - UK
+      - DIRECT
+  - name: Google
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Google.png
+    type: select
+    include-all: true
+    exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
+    proxies:
+      - Proxy
+      - HK
+      - TW
+      - JP
+      - KR
+      - US
+      - DE
+      - SG
+      - FR
+      - UK
+      - DIRECT
+  - name: OneDrive
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/OneDrive.png
+    type: select
+    include-all: true
+    exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
+    proxies:
+      - DIRECT
+      - Proxy
+      - HK
+      - TW
+      - JP
+      - KR
+      - US
+      - DE
+      - SG
+      - FR
+      - UK
+  - name: Microsoft
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Microsoft.png
+    type: select
+    include-all: true
+    exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
+    proxies:
+      - DIRECT
+      - Proxy
+      - REJECT
+      - HK
+      - TW
+      - JP
+      - KR
+      - US
+      - DE
+      - SG
+      - FR
+      - UK
+  - name: Twitter
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Twitter.png
+    type: select
+    include-all: true
+    exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
+    proxies:
+      - Proxy
+      - HK
+      - TW
+      - JP
+      - KR
+      - US
+      - DE
+      - SG
+      - FR
+      - UK
+      - DIRECT
+  - name: Emby
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Emby.png
+    type: select
+    include-all: true
+    exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
+    proxies:
+      - Proxy
+      - HK
+      - TW
+      - JP
+      - KR
+      - US
+      - DE
+      - SG
+      - FR
+      - UK
+      - DIRECT
+  - name: Steam
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Steam.png
+    type: select
+    include-all: true
+    exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
+    proxies:
+      - DIRECT
+      - HK
+      - TW
+      - JP
+      - KR
+      - US
+      - DE
+      - SG
+      - FR
+      - UK
+      - Proxy
+  - name: HK
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Hong_Kong.png
+    type: url-test
+    interval: 300000
+    timeout: 1500
+    tolerance: 50
+    include-all: true
+    filter: 香港|HK|🇭🇰
+  - name: TW
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Taiwan.png
+    type: url-test
+    interval: 300000
+    timeout: 1500
+    tolerance: 50
+    include-all: true
+    filter: 台湾|TW|🇹🇼
+  - name: JP
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Japan.png
+    type: url-test
+    interval: 300000
+    timeout: 1500
+    tolerance: 50
+    include-all: true
+    filter: 日本|JP|🇯🇵
+  - name: KR
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Korea.png
+    type: url-test
+    interval: 300000
+    timeout: 1500
+    tolerance: 50
+    include-all: true
+    filter: 韩国|KR|🇰🇷
+  - name: US
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/United_States.png
+    type: url-test
+    interval: 300000
+    timeout: 1500
+    tolerance: 50
+    include-all: true
+    filter: 美国|US|🇺🇸
+  - name: DE
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Germany.png
+    type: url-test
+    interval: 300000
+    timeout: 1500
+    tolerance: 50
+    include-all: true
+    filter: 德国|DE|🇩🇪
+  - name: SG
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Singapore.png
+    type: url-test
+    interval: 300000
+    timeout: 1500
+    tolerance: 50
+    include-all: true
+    filter: 新加坡|SG|🇸🇬
+  - name: FR
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/France.png
+    type: url-test
+    interval: 300000
+    timeout: 1500
+    tolerance: 50
+    include-all: true
+    filter: 法国|FR|🇫🇷
+  - name: UK
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/United_Kingdom.png
+    type: url-test
+    interval: 300000
+    timeout: 1500
+    tolerance: 50
+    include-all: true
+    filter: 英国|GB|🇬🇧
+    exclude-filter: Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
+
+rule-providers:
+  # AdBlock:
+  #   url: https://raw.githubusercontent.com/REIJI007/AdBlock_Rule_For_Clash/master/adblock_reject.yaml
+  #   behavior: domain
+  #   interval: 86400
+  #   proxy: Proxy
+  #   type: http
+  Apple:
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Apple/Apple_Classical.yaml
+    behavior: classical
+    interval: 86400
+    proxy: Proxy
+    type: http
+  Telegram:
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Telegram/Telegram.yaml
+    behavior: classical
+    interval: 86400
+    proxy: Proxy
+    type: http
+  YouTube:
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/YouTube/YouTube.yaml
+    behavior: classical
+    interval: 86400
+    proxy: Proxy
+    type: http
+  BiliBili:
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/BiliBili/BiliBili.yaml
+    behavior: classical
+    interval: 86400
+    proxy: Proxy
+    type: http
+  TikTok:
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/TikTok/TikTok.yaml
+    behavior: classical
+    interval: 86400
+    proxy: Proxy
+    type: http
+  Spotify:
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Spotify/Spotify.yaml
+    behavior: classical
+    interval: 86400
+    proxy: Proxy
+    type: http
+  Netflix:
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Netflix/Netflix.yaml
+    behavior: classical
+    interval: 86400
+    proxy: Proxy
+    type: http
+  Disney:
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Disney/Disney.yaml
+    behavior: classical
+    interval: 86400
+    proxy: Proxy
+    type: http
+  Google:
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Google/Google.yaml
+    behavior: classical
+    interval: 86400
+    proxy: Proxy
+    type: http
+  OpenAI:
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/OpenAI/OpenAI.yaml
+    behavior: classical
+    interval: 86400
+    proxy: Proxy
+    type: http
+  Microsoft:
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Microsoft/Microsoft.yaml
+    behavior: classical
+    interval: 86400
+    proxy: Proxy
+    type: http
+  Twitter:
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Twitter/Twitter.yaml
+    behavior: classical
+    interval: 86400
+    proxy: Proxy
+    type: http
+  Steam:
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Steam/Steam.yaml
+    behavior: classical
+    interval: 86400
+    proxy: Proxy
+    type: http
+  OneDrive:
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/OneDrive/OneDrive.yaml
+    behavior: classical
+    interval: 86400
+    proxy: Proxy
+    type: http
+  Emby:
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Emby/Emby.yaml
+    behavior: classical
+    interval: 86400
+    proxy: Proxy
+    type: http
+  Gemini:
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Gemini/Gemini.yaml
+    behavior: classical
+    interval: 86400
+    proxy: Proxy
+    type: http
+  Claude:
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Claude/Claude.yaml
+    behavior: classical
+    interval: 86400
+    proxy: Proxy
+    type: http
+  Github:
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/GitHub/GitHub_No_Resolve.yaml
+    behavior: classical
+    interval: 86400
+    proxy: Proxy
+    type: http
+
+rules:
+  # - RULE-SET,AdBlock,REJECT
+  - RULE-SET,Telegram,Telegram
+  - RULE-SET,YouTube,YouTube
+  - RULE-SET,BiliBili,BiliBili
+  - RULE-SET,TikTok,TikTok
+  - RULE-SET,Spotify,Spotify
+  - RULE-SET,Netflix,Netflix
+  - RULE-SET,Disney,Disney
+  - RULE-SET,Google,Google
+  - RULE-SET,OpenAI,OpenAI
+  - RULE-SET,Microsoft,Microsoft
+  - RULE-SET,Twitter,Twitter
+  - RULE-SET,Steam,Steam
+  - RULE-SET,OneDrive,OneDrive
+  - RULE-SET,Emby,Emby
+  - RULE-SET,Gemini,Gemini
+  - RULE-SET,Claude,Claude
+  - RULE-SET,Github,Proxy
+  - GEOIP,private,DIRECT
+  - GEOIP,CN,DIRECT
+  - MATCH,Proxy

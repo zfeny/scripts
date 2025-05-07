@@ -7,6 +7,7 @@ proxy-groups:
       - '🍵低倍率节点'
       - '☝️手动切换'
       - '♻️自动选择'
+      - '🏠国外家宽'
       - '🛑故障转移'
       - DIRECT
   - name: '☝️手动切换'
@@ -27,6 +28,14 @@ proxy-groups:
     interval: 86400
     tolerance: 50
     exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
+  - name: '🏠国外家宽'
+    type: url-test
+    include-all: true
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 3600
+    tolerance: 50
+    filter: Fam
+    exclude-filter: 香港|HK|🇭🇰
   - name: '🛑故障转移'
     type: fallback
     include-all: true
@@ -41,12 +50,12 @@ proxy-groups:
     filter: (?i)(?:[x×倍])\s*0\.\d+|0\.\d+\s*(?:[x×倍])|Test|6bcloud|起帆
 
 rule-providers:
-  AdBlock:
-    url: https://raw.githubusercontent.com/REIJI007/AdBlock_Rule_For_Clash/master/adblock_reject.yaml
-    behavior: domain
-    interval: 86400
-    proxy: 🚀代理方案
-    type: http
+  # AdBlock:
+  #   url: https://raw.githubusercontent.com/REIJI007/AdBlock_Rule_For_Clash/master/adblock_reject.yaml
+  #   behavior: domain
+  #   interval: 86400
+  #   proxy: 🚀代理方案
+  #   type: http
   Apple:
     url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Apple/Apple_Classical.yaml
     behavior: classical
@@ -186,10 +195,10 @@ rules:
   - RULE-SET,BiliBili,DIRECT
   - RULE-SET,TikTok,📉下载专用
   - RULE-SET,Spotify,🚀代理方案
-  - RULE-SET,Netflix,🚀代理方案
-  - RULE-SET,Disney,🚀代理方案
+  - RULE-SET,Netflix,📉下载专用
+  - RULE-SET,Disney,📉下载专用
   - RULE-SET,Google,🚀代理方案
-  - RULE-SET,OpenAI,🚀代理方案
+  - RULE-SET,OpenAI,🏠国外家宽
   - RULE-SET,Microsoft,🚀代理方案
   - RULE-SET,Twitter,🚀代理方案
   - RULE-SET,Steam,🚀代理方案
