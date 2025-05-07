@@ -70,7 +70,7 @@ proxy-groups:
     include-all: true
     filter: (套餐|流量)
     proxies:
-      - '🍵低倍率节点'
+      - '🍵日常低倍率'
       - '☝️手动切换'
       - '♻️自动选择'
       - '🏠国外家宽'
