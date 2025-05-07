@@ -118,7 +118,7 @@ proxy-groups:
     tolerance: 50
     exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置|德国|DE|🇩🇪|法国|FR|🇫🇷|英国|GB|🇬🇧|荷兰|NL|🇳🇱|意大利|IT|🇮🇹|美国|US|🇺🇸|加拿大|CA|🇨🇦|巴西|BR|🇧🇷|智利|CL|🇨🇱|香港|HK|🇭🇰|台湾|TW|🇹🇼|日本|JP|🇯🇵|韩国|KR|🇰🇷|新加坡|SG|🇸🇬
 
-
+#test
 rule-providers:
   # AdBlock:
   #   url: https://raw.githubusercontent.com/REIJI007/AdBlock_Rule_For_Clash/master/adblock_reject.yaml
