@@ -75,6 +75,7 @@ proxy-groups:
       - '♻️自动选择'
       - '🏠国外家宽'
       - '🛑故障转移'
+      - '📉下载专用'
       - DIRECT
   - name: '☝️手动切换'
     type: select
@@ -114,6 +115,62 @@ proxy-groups:
     url: 'http://www.gstatic.com/generate_204'
     interval: 300
     filter: (?i)(?:[x×倍])\s*0\.\d+|0\.\d+\s*(?:[x×倍])|Test|6bcloud|起帆
+  - name: '🇭🇰香港'
+    type: url-test
+    include-all: true
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 3600
+    filter: (?i)香港|HK|🇭🇰
+  - name: '🇹🇼台湾'
+    type: url-test
+    include-all: true
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 3600
+    filter: (?i)台湾|TW|🇹🇼
+  - name: '🇯🇵日本'
+    type: url-test
+    include-all: true
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 3600
+    filter: (?i)日本|JP|🇯🇵
+  - name: '🇰🇷韩国'
+    type: url-test
+    include-all: true
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 3600
+    filter: (?i)韩国|KR|🇰🇷
+  - name: '🇸🇬新加坡'
+    type: url-test
+    include-all: true
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 3600
+    filter: (?i)新加坡|SG|🇸🇬
+  - name: '🇺🇸美国'
+    type: url-test
+    include-all: true
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 3600
+    filter: (?i)美国|US|🇺🇸
+  - name: '🌎南北美洲'
+    type: url-test
+    include-all: true
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 3600
+    filter: (?i)加拿大|CA|🇨🇦|巴西|BR|🇧🇷|智利|CL|🇨🇱
+  - name: '🇪🇺欧洲地区'
+    type: url-test
+    include-all: true
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 3600
+    filter: (?i)德国|DE|🇩🇪|法国|FR|🇫🇷|英国|GB|🇬🇧|荷兰|NL|🇳🇱|意大利|IT|🇮🇹
+  - name: '🥶冷门地区'
+    type: url-test
+    include-all: true
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 86400
+    tolerance: 50
+    exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置|德国|DE|🇩🇪|法国|FR|🇫🇷|英国|GB|🇬🇧|荷兰|NL|🇳🇱|意大利|IT|🇮🇹|美国|US|🇺🇸|加拿大|CA|🇨🇦|巴西|BR|🇧🇷|智利|CL|🇨🇱|香港|HK|🇭🇰|台湾|TW|🇹🇼|日本|JP|🇯🇵|韩国|KR|🇰🇷|新加坡|SG|🇸🇬
+
 
 rule-providers:
   # AdBlock:
@@ -260,7 +317,7 @@ rules:
   - RULE-SET,YouTube,📉下载专用
   - RULE-SET,BiliBili,DIRECT
   - RULE-SET,TikTok,📉下载专用
-  - RULE-SET,Spotify,🚀代理方案
+  - RULE-SET,Spotify,📉下载专用
   - RULE-SET,Netflix,📉下载专用
   - RULE-SET,Disney,📉下载专用
   - RULE-SET,Google,🚀代理方案
