@@ -29,7 +29,7 @@ proxy-groups:
     include-all: false
     proxies:
       - '♻️自动选择'
-      - '🚀手动切换'
+      # - '🚀手动切换'
       - DIRECT
       - REJECT
   - name: '♻️自动选择'
