@@ -1,0 +1,4 @@
+proxy-groups:
+  - name: 🚀proxy
+  - type: select
+  - include-all: true
