@@ -54,6 +54,7 @@ proxy-groups:
     url: 'http://www.gstatic.com/generate_204'
     interval: 300
     filter: (?i)(?:[x×倍])\s*0\.\d+|0\.\d+\s*(?:[x×倍])|Test|6bcloud|起帆
+    exclude-filter: 6bcloud丨 台湾 GPT
   - name: '🇭🇰香港'
     type: url-test
     include-all: true
