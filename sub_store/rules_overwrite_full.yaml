@@ -240,18 +240,25 @@ rule-providers:
 rules:
 ## 个人规则
 
+  - DOMAIN,obsidian-livesync.630516.xyz,DIRECT
+
   - DOMAIN-SUFFIX,adobe.com,DIRECT
   - DOMAIN-SUFFIX,adobe.io,DIRECT
   - DOMAIN-SUFFIX,adobess.com,DIRECT
-  - DOMAIN-SUFFIX,auth0.com,DIRECT
+  # - DOMAIN-SUFFIX,auth0.com,DIRECT
+  - DOMAIN-SUFFIX,cnki.net,DIRECT
   - DOMAIN-SUFFIX,deeplx.org,DIRECT
   - DOMAIN-SUFFIX,dianqilianmeng.com,DIRECT
   - DOMAIN-SUFFIX,icourse163.org,DIRECT
   - DOMAIN-SUFFIX,infini.money,DIRECT
+  - DOMAIN-SUFFIX,ivcbt.com,DIRECT
   - DOMAIN-SUFFIX,linux.do,DIRECT
   - DOMAIN-SUFFIX,mihoyo.com,DIRECT
+  - DOMAIN-SUFFIX,microsoft.com,DIRECT
   - DOMAIN-SUFFIX,oracle.com,DIRECT
   - DOMAIN-SUFFIX,oraclecloud.com,DIRECT
+  - DOMAIN-SUFFIX,zhihu.com,DIRECT
+  - DOMAIN-SUFFIX,zhimg.com,DIRECT
 
   - PROCESS-NAME,OneDrive.exe,DIRECT
   - PROCESS-NAME,ssh.exe,DIRECT
