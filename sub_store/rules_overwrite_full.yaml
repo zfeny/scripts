@@ -255,6 +255,7 @@ rules:
   - DOMAIN-SUFFIX,linux.do,DIRECT
   - DOMAIN-SUFFIX,mihoyo.com,DIRECT
   - DOMAIN-SUFFIX,microsoft.com,DIRECT
+  - DOMAIN-SUFFIX,netcup.com,DIRECT
   - DOMAIN-SUFFIX,oracle.com,DIRECT
   - DOMAIN-SUFFIX,oraclecloud.com,DIRECT
   - DOMAIN-SUFFIX,zhihu.com,DIRECT
