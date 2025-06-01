@@ -1,0 +1,178 @@
+/* 优化后的代码 */
+/* 添加字体声明 */
+/* 修改后的全局字体设置 */
+@font-face {
+    font-family: 'LXGW-WenKai-Mono-GB';
+    src: url('file:///C:/Users/yydsz/OneDrive/998_S3/Alist/fonts/LXGWWenKaiMonoGBScreen.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+    unicode-range: U+4E00-9FFF /* 扩展CJK字符范围 */
+}
+
+/* 强制全局应用字体 */
+*,
+*::after {
+    font-family: 
+        Consolas,                    /* 西文字体 这个可以改*/
+        'LXGW-WenKai-Mono-GB',       /* 中文字体 可以改*/
+        sans-serif !important;       /* 强制覆盖所有样式 */
+}
+
+/* 单独设置等宽字体 */
+code, pre, kbd, samp, tt {
+    font-family: 
+        Consolas,
+        Monaco,
+        'Andale Mono',
+        'Ubuntu Mono',
+        monospace !important;
+}
+
+/* 覆盖表单元素 */
+input, button, textarea, select {
+    font-family: inherit !important;
+}
+
+:root {
+    /* 合并重复的 :root 声明 */
+    --duration-quick: 0.15s;
+    --easing-emphasized: cubic-bezier(0.2, 0, 0, 1);
+    --easing-decelerate: cubic-bezier(0, 0, 0.2, 1);
+    --radius-dynamic: clamp(12px, (100% - 60px) * 0.02, 24px);
+    --color-brand-primary: oklch(62.8% 0.25 29.2);
+    --color-brand-hover: color-mix(in oklch, var(--color-brand-primary) 90%, black);
+    --theme-lightness: 1;
+    --shadow-intensity: 0.04;
+    --color-black-soft: #2c2c2c; /* 合并到根声明 */
+  }
+  
+
+  
+  .message-content-container {
+    transform: translateZ(0);
+    will-change: transform, box-shadow;
+    contain: layout paint style;
+    
+    background: hsl(
+      calc(240 * var(--theme-lightness)),
+      calc(5% * abs(var(--theme-lightness))),
+      calc(98% - 76% * var(--theme-lightness))
+    ) !important;
+    
+    border: 1px solid color-mix(
+      in oklch, 
+      var(--color-brand-primary), 
+      transparent 92%
+    );
+    border-radius: var(--radius-dynamic);
+    
+    transition: 
+      transform var(--duration-quick) var(--easing-emphasized),
+      box-shadow 0.4s var(--easing-decelerate),
+      background-color 1s linear;
+  
+    margin-block: 8px;
+    padding-inline: 10px;
+    padding-block-start: 10px;
+  
+    /* 合并阴影声明 */
+    box-shadow: 
+      0 4px 16px -8px hsl(0 0% 0% / calc(var(--shadow-intensity) * 10)),
+      0 8px 32px -12px hsl(0 0% 100% / calc(0.03 - var(--shadow-intensity)));
+  }
+  
+  #inputbar {
+    background: color-mix(
+      in oklab,
+      var(--chat-background-white),
+      transparent 4%
+    ) !important;
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    margin: -15px 10px 15px 0;
+    margin-left: 10px;
+  }
+  
+  /* 合并主题声明 */
+  body[theme-mode='dark'] {
+    --theme-lightness: -1;
+    --shadow-intensity: 0.4;
+    --color-background: #2c2c2c88;
+    --color-background-soft: #4A4A4A;
+    --color-background-mute: #2c2c2c66;
+    --navbar-background: #2c2c2c;
+    --chat-background: #2c2c2c;
+    --chat-background-user: #666666;
+    --chat-background-assistant: #4a4a4a;
+    --message-user-color: #ffffff;
+  
+    .message-content-container {
+      background: hsl(
+        calc(200 + 40 * var(--theme-lightness)),
+        calc(8% * abs(var(--theme-lightness))),
+        calc(16% + 6% * var(--theme-lightness))
+      ) !important;
+      
+      border-color: color-mix(
+        in oklch, 
+        var(--color-brand-primary), 
+        transparent 88%
+      );
+    }
+    
+    #inputbar {
+      background: color-mix(
+        in oklab,
+        var(--chat-background-white),
+        black 6%
+      ) !important;
+    }
+  
+    #content-container {
+      background-color: #3c3c3c !important;
+    }
+  }
+  
+  body[theme-mode='light'] {
+    --color-background: #fff5f7; /* 非常淡的粉色背景，更接近白色 */
+    --color-background-soft: #fff0f2; /* 更淡的柔和粉色 */
+    --color-background-mute: #ffe8ec; /* 极淡的粉色 */
+    --navbar-background: #fff2f5; /* 非常浅的粉色，导航栏 */
+    --chat-background: #fffafa; /* 雪白色，保持不变 */
+    --chat-background-user: #fff0f2; /* 更淡的柔和粉色，用户聊天框 */
+    --chat-background-assistant: #fff2f5; /* 非常浅的粉色，AI聊天框 */
+    --color-white: #fffafa; /* 雪白色，保持不变 */
+    --message-user-color: #1d3d2f; /* 加深文字颜色 (原2d4a3d → 1d3d2f) */
+}
+
+
+  
+  @media (pointer: coarse) {
+    .message-content-container {
+      min-block-size: 44px;
+      --shadow-intensity: calc(var(--shadow-intensity) * 2);
+      
+      transition: 
+        transform var(--duration-quick) var(--easing-emphasized),
+        box-shadow 0.3s linear;
+    }
+  }
+  
+  @media (prefers-contrast: more) {
+    .message-content-container {
+      border-width: 2px;
+      
+      &::after {
+        content: "";
+        display: block;
+        border: 1px solid CanvasText;
+        border-radius: inherit;
+      }
+    }
+  }
+  
+  .bubble .message-user {
+    color: var(--message-user-color);
+  }
