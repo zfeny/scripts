@@ -30,7 +30,7 @@ proxy-groups:
     interval: 86400
     tolerance: 50
     filter: 7li7li
-    exclude-filter: (?i)(GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置|x([2-9]|\d{2,})(\.\d+)?|(([2-9]|\d{2,})(\.\d+)?)[Xx×]|萌云)
+    exclude-filter: (?i)(GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置|x([2-9]|\d{2,})(\.\d+)?|(([2-9]|\d{2,})(\.\d+)?)[Xx×]|萌云|香港)
   - name: '♻️全局自选'
     type: url-test
     include-all: true
@@ -255,7 +255,7 @@ rules:
   - DOMAIN-SUFFIX,ivcbt.com,DIRECT
   - DOMAIN-SUFFIX,linux.do,DIRECT
   - DOMAIN-SUFFIX,mihoyo.com,DIRECT
-  - DOMAIN-SUFFIX,microsoft.com,DIRECT
+  # - DOMAIN-SUFFIX,microsoft.com,DIRECT
   - DOMAIN-SUFFIX,netcup.com,DIRECT
   - DOMAIN-SUFFIX,oracle.com,DIRECT
   - DOMAIN-SUFFIX,oraclecloud.com,DIRECT
