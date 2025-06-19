@@ -37,7 +37,7 @@ proxy-groups:
     url: 'http://www.gstatic.com/generate_204'
     interval: 86400
     tolerance: 50
-    exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置
+    exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置|香港|萌云|新加坡
   - name: '🏠国外家宽'
     type: select
     include-all: true
@@ -55,7 +55,7 @@ proxy-groups:
     url: 'http://www.gstatic.com/generate_204'
     interval: 300
     filter: (?i)(?:[x×倍])\s*0\.\d+|0\.\d+\s*(?:[x×倍])|Test|6bcloud|起帆
-    exclude-filter: 6bcloud丨 台湾 GPT
+    exclude-filter: 6bcloud丨 台湾 GPT|越南
   - name: '🇭🇰香港'
     type: url-test
     include-all: true
@@ -241,6 +241,11 @@ rules:
 ## 个人规则
 
   - DOMAIN-SUFFIX,630516.xyz,DIRECT
+  - DOMAIN-SUFFIX,534612.xyz,DIRECT
+
+  - DOMAIN,nav-edge.smartscreen.microsoft.com,DIRECT
+  - DOMAIN,lucide.dev,DIRECT
+  - DOMAIN,music.youtube.com,🚀代理方案
 
   - DOMAIN-SUFFIX,adobe.com,DIRECT
   - DOMAIN-SUFFIX,adobe.io,DIRECT
@@ -250,8 +255,10 @@ rules:
   - DOMAIN-SUFFIX,customercontrolpanel.de,DIRECT
   - DOMAIN-SUFFIX,deeplx.org,DIRECT
   - DOMAIN-SUFFIX,dianqilianmeng.com,DIRECT
+  - DOMAIN-SUFFIX,googlevideo.com,🚀代理方案
+  - DOMAIN-SUFFIX,mypikpak.com,📉下载专用
   - DOMAIN-SUFFIX,icourse163.org,DIRECT
-  - DOMAIN-SUFFIX,infini.money,DIRECT
+  # - DOMAIN-SUFFIX,infini.money,DIRECT
   - DOMAIN-SUFFIX,ivcbt.com,DIRECT
   - DOMAIN-SUFFIX,linux.do,DIRECT
   - DOMAIN-SUFFIX,mihoyo.com,DIRECT
@@ -264,7 +271,10 @@ rules:
 
   - PROCESS-NAME,OneDrive.exe,DIRECT
   - PROCESS-NAME,ssh.exe,DIRECT
-  # - PROCESS-NAME,Termius.exe,DIRECT
+  - PROCESS-NAME,Termius.exe,DIRECT
+  - PROCESS-NAME,GoogleDriveFS.exe,📉下载专用
+  - PROCESS-NAME,DownloadServer.exe,📉下载专用
+  - PROCESS-NAME,PikPak.exe,📉下载专用
 
 ## 规则组
   # - RULE-SET,AdBlock,REJECT
@@ -280,10 +290,9 @@ rules:
   - RULE-SET,Microsoft,🚀代理方案
   - RULE-SET,Twitter,🚀代理方案
   - RULE-SET,Steam,🚀代理方案
-  - RULE-SET,OneDrive,DIRECT
+  - RULE-SET,OneDrive,📉下载专用
   - RULE-SET,Emby,DIRECT
   - RULE-SET,Github,🚀代理方案
-  - GEOIP,private,DIRECT
   - GEOIP,CN,DIRECT
   - MATCH,🚀代理方案
-  # - MATCH,DIRECT123
+  # - MATCH,DIRECT
