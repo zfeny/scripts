@@ -239,24 +239,33 @@ rule-providers:
 
 rules:
 ## 个人规则
+  - IP-CIDR,192.168.0.0/24,DIRECT
+  - IP-CIDR,192.168.1.0/24,DIRECT
+  - IP-CIDR,159.54.178.253/32,DIRECT
+  - IP-CIDR,152.53.178.102/32,DIRECT
 
   - DOMAIN-SUFFIX,630516.xyz,DIRECT
   - DOMAIN-SUFFIX,534612.xyz,DIRECT
+  - DOMAIN-SUFFIX,919516.xyz,DIRECT
 
   - DOMAIN,nav-edge.smartscreen.microsoft.com,DIRECT
   - DOMAIN,lucide.dev,DIRECT
   - DOMAIN,music.youtube.com,🚀代理方案
 
+  - DOMAIN-SUFFIX,18comic.vip,DIRECT
   - DOMAIN-SUFFIX,adobe.com,DIRECT
   - DOMAIN-SUFFIX,adobe.io,DIRECT
   - DOMAIN-SUFFIX,adobess.com,DIRECT
+  - DOMAIN-SUFFIX,acgrip.com,DIRECT
   # - DOMAIN-SUFFIX,auth0.com,DIRECT
   - DOMAIN-SUFFIX,cnki.net,DIRECT
   - DOMAIN-SUFFIX,customercontrolpanel.de,DIRECT
   - DOMAIN-SUFFIX,deeplx.org,DIRECT
   - DOMAIN-SUFFIX,dianqilianmeng.com,DIRECT
   - DOMAIN-SUFFIX,googlevideo.com,🚀代理方案
+  - DOMAIN-SUFFIX,mineru.net,DIRECT
   - DOMAIN-SUFFIX,mypikpak.com,📉下载专用
+  - DOMAIN-SUFFIX,mypt.cc,DIRECT
   - DOMAIN-SUFFIX,icourse163.org,DIRECT
   # - DOMAIN-SUFFIX,infini.money,DIRECT
   - DOMAIN-SUFFIX,ivcbt.com,DIRECT
@@ -264,17 +273,19 @@ rules:
   - DOMAIN-SUFFIX,mihoyo.com,DIRECT
   # - DOMAIN-SUFFIX,microsoft.com,DIRECT
   - DOMAIN-SUFFIX,netcup.com,DIRECT
-  - DOMAIN-SUFFIX,oracle.com,DIRECT
-  - DOMAIN-SUFFIX,oraclecloud.com,DIRECT
+  # - DOMAIN-SUFFIX,oracle.com,DIRECT
+  # - DOMAIN-SUFFIX,oraclecloud.com,DIRECT
   - DOMAIN-SUFFIX,zhihu.com,DIRECT
   - DOMAIN-SUFFIX,zhimg.com,DIRECT
 
-  - PROCESS-NAME,OneDrive.exe,DIRECT
+  - PROCESS-NAME,aria2c_gj4hq.exe,DIRECT
+  - PROCESS-NAME,OneDrive.exe,📉下载专用
   - PROCESS-NAME,ssh.exe,DIRECT
   - PROCESS-NAME,Termius.exe,DIRECT
   - PROCESS-NAME,GoogleDriveFS.exe,📉下载专用
   - PROCESS-NAME,DownloadServer.exe,📉下载专用
   - PROCESS-NAME,PikPak.exe,📉下载专用
+  - PROCESS-NAME,steam.exe,DIRECT
 
 ## 规则组
   # - RULE-SET,AdBlock,REJECT
