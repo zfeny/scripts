@@ -23,7 +23,7 @@ const config = {
   api: scriptArgs.api || 'ip-api',
   token: scriptArgs.token || '',
   format: scriptArgs.format || 'flag',
-  cleanShortCodes: scriptArgs.cleanShortCodes === 'true' || scriptArgs.cleanShortCodes === true,
+  cleanShortCodes: scriptArgs.cleanShortCodes === 'true' || scriptArgs.cleanShortCodes === true || false,
   debug: scriptArgs.debug === 'true' || scriptArgs.debug === true,
   timeout: parseInt(scriptArgs.timeout) || 10000
 };
