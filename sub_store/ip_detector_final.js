@@ -2,7 +2,7 @@
  * Sub-Store IP地理位置检测脚本 - 最终版
  * 功能：通过API精准检测代理节点真实IP地理位置，清除原有地区标识，只保留API获取的国别flag
  * 作者：zfeny
- * 版本：6.2 Final
+ * 版本：6.3 Final
  * 更新：2025-08-08
  * 
  * 使用方法：
@@ -24,6 +24,7 @@
  * include=IPLC+专线&exclude=测试 -> 只处理包含"IPLC"或"专线"但不包含"测试"的节点
  * 
  * 更新日志：
+ * v6.3 - 修正台湾地区旗帜显示：确保台湾使用自己的旗帜🇹🇼而不是🇨🇳
  * v6.2 - 增强过滤功能：支持用+分隔多个关键词进行包含/排除过滤
  * v6.1 - 修复清理规则过于宽泛导致意外删除字符的问题，移除单字匹配，改用完整国家名称匹配
  */
@@ -395,7 +396,12 @@ function queryIPLocationSync(ip) {
  * 生成新的节点名称
  */
 function generateNewNodeName(cleanedName, locationInfo, originalName) {
-  const flag = getCountryFlag(locationInfo.countryCode);
+  let flag = getCountryFlag(locationInfo.countryCode);
+  
+  // 特殊处理：确保台湾使用自己的旗帜
+  if (locationInfo.countryCode?.toUpperCase() === 'TW') {
+    flag = '🇹🇼';
+  }
   
   switch (config.format) {
     case 'flag':
