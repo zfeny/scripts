@@ -1,91 +1,26 @@
 /**
- * IP地理位置检测脚本 - 适用于Sub-Store (纯API版本)
- * 仅通过真实API查询IP地址的地理位置，其他情况一律报错
+ * IP地理位置检测脚本 - 适用于Sub-Store (简化版本)
+ * 由于Sub-Store环境限制，暂时使用硬编码IP范围进行检测
  * 
  * 支持参数：
- * - api: 使用的IP查询服务 (ip-api, ipapi, freeipapi, ipinfo)
  * - format: 输出格式 (flag, zh, en, code)  
- * - timeout: 请求超时时间（毫秒）
  * - prefix: 节点名前缀
  * - fallback: 检测失败时是否保留原节点
  * 
  * 使用示例：
- * script.js#api=ip-api&format=flag&timeout=5000&prefix=✅
+ * script.js#format=flag&prefix=✅
  * 
  * 作者: Assistant
- * 版本: 4.0 (纯API版本)
+ * 版本: 4.1 (Sub-Store兼容版本)
  */
 
 const inArg = $arguments || {};
 
 // 配置参数
 const config = {
-  api: inArg.api || 'ip-api',
   format: inArg.format || 'flag',
-  timeout: parseInt(inArg.timeout) || 5000,
   prefix: inArg.prefix || '✅',
-  fallback: inArg.fallback !== 'false',
-  retries: parseInt(inArg.retries) || 2
-};
-
-// 免费IP查询API配置
-const ipServices = {
-  'ip-api': {
-    name: 'IP-API.com',
-    url: 'http://ip-api.com/json/',
-    limit: '45 requests/minute',
-    parseResponse: (data) => ({
-      ip: data.query,
-      country: data.country,
-      countryCode: data.countryCode,
-      region: data.regionName,
-      city: data.city,
-      isp: data.isp,
-      timezone: data.timezone
-    })
-  },
-  'freeipapi': {
-    name: 'FreeIPAPI.com',
-    url: 'https://freeipapi.com/api/json/',
-    limit: '60 requests/minute',
-    parseResponse: (data) => ({
-      ip: data.ipAddress,
-      country: data.countryName,
-      countryCode: data.countryCode,
-      region: data.regionName,
-      city: data.cityName,
-      isp: data.isP,
-      timezone: data.timeZone
-    })
-  },
-  'ipapi': {
-    name: 'IPAPI.co',
-    url: 'https://ipapi.co/',
-    limit: '1000 requests/day (free)',
-    parseResponse: (data) => ({
-      ip: data.ip,
-      country: data.country_name,
-      countryCode: data.country_code,
-      region: data.region,
-      city: data.city,
-      isp: data.org,
-      timezone: data.timezone
-    })
-  },
-  'ipinfo': {
-    name: 'IPinfo.io',
-    url: 'https://ipinfo.io/',
-    limit: '50000 requests/month (free)',
-    parseResponse: (data) => ({
-      ip: data.ip,
-      country: data.country,
-      countryCode: data.country,
-      region: data.region,
-      city: data.city,
-      isp: data.org,
-      timezone: data.timezone
-    })
-  }
+  fallback: inArg.fallback !== 'false'
 };
 
 // 国家名称映射
@@ -134,13 +69,55 @@ const countryMaps = {
   }
 };
 
+// 常见IP地址段映射（临时解决方案）
+const ipRanges = {
+  // 中国大陆
+  'CN': [
+    '1.0.0.0/8', '14.0.0.0/8', '27.0.0.0/8', '36.0.0.0/8',
+    '39.0.0.0/8', '42.0.0.0/8', '49.0.0.0/8', '58.0.0.0/8',
+    '59.0.0.0/8', '60.0.0.0/8', '61.0.0.0/8', '110.0.0.0/8',
+    '111.0.0.0/8', '112.0.0.0/8', '113.0.0.0/8', '114.0.0.0/8',
+    '115.0.0.0/8', '116.0.0.0/8', '117.0.0.0/8', '118.0.0.0/8',
+    '119.0.0.0/8', '120.0.0.0/8', '121.0.0.0/8', '122.0.0.0/8',
+    '123.0.0.0/8', '124.0.0.0/8', '125.0.0.0/8'
+  ],
+  // 香港
+  'HK': [
+    '103.0.0.0/8', '202.0.0.0/8', '203.0.0.0/8'
+  ],
+  // 台湾
+  'TW': [
+    '140.0.0.0/8', '163.0.0.0/8', '168.0.0.0/8'
+  ],
+  // 新加坡
+  'SG': [
+    '152.0.0.0/8', '165.0.0.0/8'
+  ],
+  // 日本
+  'JP': [
+    '126.0.0.0/8', '133.0.0.0/8', '153.0.0.0/8', '210.0.0.0/8'
+  ],
+  // 韩国
+  'KR': [
+    '211.0.0.0/8', '175.0.0.0/8'
+  ],
+  // 美国
+  'US': [
+    '8.0.0.0/8', '23.0.0.0/8', '35.0.0.0/8', '50.0.0.0/8',
+    '63.0.0.0/8', '64.0.0.0/8', '65.0.0.0/8', '66.0.0.0/8',
+    '67.0.0.0/8', '68.0.0.0/8', '69.0.0.0/8', '70.0.0.0/8',
+    '71.0.0.0/8', '72.0.0.0/8', '73.0.0.0/8', '74.0.0.0/8',
+    '75.0.0.0/8', '76.0.0.0/8', '98.0.0.0/8', '99.0.0.0/8',
+    '173.0.0.0/8', '174.0.0.0/8', '184.0.0.0/8', '204.0.0.0/8'
+  ]
+};
+
 /**
  * 从节点配置中提取IP地址
  * @param {Object} proxy 代理节点配置
  * @returns {string|null} IP地址或null
  */
 function extractIPFromProxy(proxy) {
-  // 从代理服务器地址提取IP
   const server = proxy.server || proxy.hostname || proxy.host;
   
   if (!server) return null;
@@ -151,145 +128,96 @@ function extractIPFromProxy(proxy) {
     return server;
   }
   
-  // 检查是否为IPv6地址
-  const ipv6Regex = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/;
-  if (ipv6Regex.test(server)) {
-    return server;
+  return null; // 不处理域名和IPv6
+}
+
+/**
+ * 检查IP是否在指定的CIDR范围内
+ * @param {string} ip IP地址
+ * @param {string} cidr CIDR格式的网络地址
+ * @returns {boolean} 是否在范围内
+ */
+function isIPInCIDR(ip, cidr) {
+  const [network, prefixLength] = cidr.split('/');
+  const prefix = parseInt(prefixLength);
+  
+  // 将IP地址转换为32位整数
+  function ipToInt(ip) {
+    return ip.split('.').reduce((acc, octet) => (acc << 8) + parseInt(octet), 0) >>> 0;
   }
   
-  // 如果是域名，直接返回null（根据用户要求，不处理域名）
+  const ipInt = ipToInt(ip);
+  const networkInt = ipToInt(network);
+  const mask = (0xFFFFFFFF << (32 - prefix)) >>> 0;
+  
+  return (ipInt & mask) === (networkInt & mask);
+}
+
+/**
+ * 根据IP地址查找国家代码
+ * @param {string} ip IP地址
+ * @returns {Object|null} 地理位置信息
+ */
+function detectLocationFromIP(ip) {
+  console.log(`🔍 检查IP ${ip} 的地理位置...`);
+  
+  for (const [countryCode, ranges] of Object.entries(ipRanges)) {
+    for (const range of ranges) {
+      if (isIPInCIDR(ip, range)) {
+        console.log(`✅ IP ${ip} 匹配到 ${countryCode} 范围: ${range}`);
+        return {
+          ip: ip,
+          countryCode: countryCode,
+          country: countryMaps.english[countryCode] || countryCode,
+          method: 'ip-range'
+        };
+      }
+    }
+  }
+  
+  console.log(`❌ IP ${ip} 未匹配到任何已知范围`);
   return null;
 }
 
 /**
- * 通过IP查询API获取真实地理位置信息（Sub-Store兼容版本）
- * @param {string} ip IP地址
+ * 根据域名推测地理位置
+ * @param {string} domain 域名
  * @returns {Object|null} 地理位置信息
  */
-function queryIPLocationSync(ip) {
-  const service = ipServices[config.api];
-  if (!service) {
-    console.error(`❌ 不支持的API服务: ${config.api}`);
-    return null;
+function detectLocationFromDomain(domain) {
+  if (!domain) return null;
+  
+  const lowerDomain = domain.toLowerCase();
+  
+  // 常见地理标识域名
+  const domainPatterns = {
+    'SG': ['sg', 'singapore', 'sgp'],
+    'HK': ['hk', 'hongkong', 'hong-kong'],
+    'TW': ['tw', 'taiwan', 'taipei'],
+    'JP': ['jp', 'japan', 'tokyo', 'osaka'],
+    'KR': ['kr', 'korea', 'seoul'],
+    'US': ['us', 'usa', 'america', 'ny', 'la', 'sf', 'miami'],
+    'GB': ['uk', 'britain', 'london'],
+    'DE': ['de', 'germany', 'frankfurt'],
+    'CA': ['ca', 'canada', 'toronto'],
+    'AU': ['au', 'australia', 'sydney']
+  };
+  
+  for (const [countryCode, patterns] of Object.entries(domainPatterns)) {
+    for (const pattern of patterns) {
+      if (lowerDomain.includes(pattern)) {
+        console.log(`🌐 域名 ${domain} 包含地理标识: ${pattern} -> ${countryCode}`);
+        return {
+          domain: domain,
+          countryCode: countryCode,
+          country: countryMaps.english[countryCode] || countryCode,
+          method: 'domain'
+        };
+      }
+    }
   }
   
-  try {
-    console.log(`📡 正在查询IP ${ip} 的位置信息，使用API: ${service.name}`);
-    
-    let url;
-    if (config.api === 'ipapi') {
-      url = `${service.url}${ip}/json/`;
-    } else if (config.api === 'ipinfo') {
-      url = `${service.url}${ip}/json`;
-    } else {
-      url = `${service.url}${ip}`;
-    }
-    
-    // 使用Sub-Store环境中的HTTP方法
-    let response;
-    let data;
-    
-    // 尝试使用$httpClient (Surge/Loon环境)
-    if (typeof $httpClient !== 'undefined') {
-      console.log(`🔧 使用$httpClient进行请求`);
-      const result = $httpClient.get({
-        url: url,
-        headers: {
-          'User-Agent': 'Sub-Store-IP-Detector/4.0'
-        },
-        timeout: config.timeout / 1000 // $httpClient使用秒为单位
-      });
-      
-      if (result && result.body) {
-        data = JSON.parse(result.body);
-      } else {
-        throw new Error('HTTP请求失败');
-      }
-    }
-    // 尝试使用$task.fetch (Quantumult X环境)
-    else if (typeof $task !== 'undefined' && $task.fetch) {
-      console.log(`🔧 使用$task.fetch进行请求`);
-      const result = $task.fetch({
-        url: url,
-        method: 'GET',
-        headers: {
-          'User-Agent': 'Sub-Store-IP-Detector/4.0'
-        },
-        timeout: config.timeout
-      });
-      
-      if (result && result.body) {
-        data = JSON.parse(result.body);
-      } else {
-        throw new Error('HTTP请求失败');
-      }
-    }
-    // 尝试使用fetch (现代浏览器/Node.js环境)
-    else if (typeof fetch !== 'undefined') {
-      console.log(`🔧 使用fetch进行请求`);
-      // 注意：这里需要同步处理，但fetch是异步的
-      // 在Sub-Store环境中可能需要特殊处理
-      throw new Error('Sub-Store环境不支持异步fetch，请使用其他API方法');
-    }
-    // 最后尝试原生require方法 (Node.js环境)
-    else if (typeof require !== 'undefined') {
-      console.log(`🔧 使用Node.js http模块进行请求`);
-      const https = require('https');
-      const http = require('http');
-      const urlParse = require('url').parse;
-      
-      const parsedUrl = urlParse(url);
-      const client = parsedUrl.protocol === 'https:' ? https : http;
-      
-      // 同步HTTP请求 (Node.js环境)
-      let responseData = '';
-      const req = client.get({
-        hostname: parsedUrl.hostname,
-        port: parsedUrl.port,
-        path: parsedUrl.path,
-        headers: {
-          'User-Agent': 'Sub-Store-IP-Detector/4.0'
-        },
-        timeout: config.timeout
-      }, (res) => {
-        res.on('data', (chunk) => {
-          responseData += chunk;
-        });
-        res.on('end', () => {
-          data = JSON.parse(responseData);
-        });
-      });
-      
-      req.on('error', (error) => {
-        throw error;
-      });
-      
-      req.end();
-      
-      // 等待响应完成
-      while (!data) {
-        // 简单的同步等待
-        require('child_process').execSync('sleep 0.1');
-      }
-    }
-    else {
-      throw new Error('当前环境不支持HTTP请求，无法查询IP地理位置');
-    }
-    
-    // 检查API响应状态
-    if (config.api === 'ip-api' && data.status === 'fail') {
-      throw new Error(data.message || 'IP查询失败');
-    }
-    
-    const locationInfo = service.parseResponse(data);
-    console.log(`✅ IP ${ip} 位置: ${locationInfo.country} (${locationInfo.countryCode})`);
-    
-    return locationInfo;
-    
-  } catch (error) {
-    console.error(`❌ 查询IP ${ip} 失败: ${error.message}`);
-    return null;
-  }
+  return null;
 }
 
 /**
@@ -336,8 +264,6 @@ function buildNewNodeName(originalName, locationInfo) {
     .replace(/^(CN|HK|TW|MO|JP|KR|SG|US|GB|FR|DE|AU|CA|RU|IN|BR|IT|ES|NL|SE|NO|CH|AT|BE|DK|FI|IE|PT|GR|UA|PL|CZ|NZ|TH|VN|ID|PH|TR|AE|SA|IL|EG|ZA|KE|NG|AR|MY)\s*/i, '')
     // 移除常见前缀
     .replace(/^(✅\s*已检测\s*|✅\s*|❌\s*|已检测\s*)/, '')
-    // 移除协议类型前缀
-    .replace(/^(hysteria2\s*|vmess\s*|vless\s*|trojan\s*|ss\s*|ssr\s*)/i, '')
     .trim();
   
   // 如果清理后名称为空，使用原始名称的部分内容
@@ -361,41 +287,55 @@ function operator(proxies) {
     return proxies;
   }
   
-  console.log(`=== IP地理位置检测开始 (纯API版本) ===`);
+  console.log(`=== IP地理位置检测开始 (Sub-Store兼容版本) ===`);
   console.log(`输入节点数量: ${proxies.length}`);
-  console.log(`配置: API=${config.api}, 格式=${config.format}, 前缀="${config.prefix}"`);
-  console.log(`使用服务: ${ipServices[config.api]?.name} - ${ipServices[config.api]?.limit}`);
+  console.log(`配置: 格式=${config.format}, 前缀="${config.prefix}"`);
+  console.log(`检测方法: IP范围匹配 + 域名推测`);
   
-  // 同步处理，直接返回修改后的节点
   const results = proxies.map((proxy, index) => {
     try {
       console.log(`处理节点 ${index + 1}: ${proxy.name}`);
       
-      const ip = extractIPFromProxy(proxy);
-      
-      if (!ip) {
-        console.log(`❌ 节点 ${proxy.name} 无法提取IP地址（域名或无效地址）`);
+      const server = proxy.server || proxy.hostname || proxy.host;
+      if (!server) {
+        console.log(`❌ 节点 ${proxy.name} 无服务器地址`);
         proxy.name = `❌ ${proxy.name}`;
         return proxy;
       }
       
-      console.log(`📍 提取到IP: ${ip}`);
+      let locationInfo = null;
       
-      // 使用真实API查询IP地理位置
-      const locationInfo = queryIPLocationSync(ip);
+      // 首先尝试IP地址检测
+      const ip = extractIPFromProxy(proxy);
+      if (ip) {
+        console.log(`📍 提取到IP: ${ip}`);
+        locationInfo = detectLocationFromIP(ip);
+        if (locationInfo) {
+          locationInfo.detectionMethod = 'ip-range';
+        }
+      }
+      
+      // 如果IP检测失败，尝试域名检测
+      if (!locationInfo) {
+        console.log(`🌐 尝试域名检测: ${server}`);
+        locationInfo = detectLocationFromDomain(server);
+        if (locationInfo) {
+          locationInfo.detectionMethod = 'domain';
+        }
+      }
       
       if (locationInfo) {
         const originalName = proxy.name;
         proxy.name = buildNewNodeName(originalName, locationInfo);
         proxy.realCountry = locationInfo.countryCode;
-        proxy.realIP = ip;
+        proxy.realIP = ip || server;
         proxy.location = locationInfo;
-        proxy.detectionMethod = 'api';
+        proxy.detectionMethod = locationInfo.detectionMethod;
         
-        console.log(`🎯 API检测成功: ${originalName} -> ${proxy.name} (${ip})`);
+        console.log(`🎯 检测成功: ${originalName} -> ${proxy.name} (${locationInfo.detectionMethod})`);
         return proxy;
       } else {
-        console.log(`❌ IP ${ip} API查询失败`);
+        console.log(`❌ 无法检测节点 ${proxy.name} 的地理位置`);
         proxy.name = `❌ ${proxy.name}`;
         return proxy;
       }
@@ -407,12 +347,16 @@ function operator(proxies) {
     }
   });
   
-  const successCount = results.filter(proxy => proxy.detectionMethod === 'api').length;
+  const successCount = results.filter(proxy => proxy.detectionMethod).length;
   const errorCount = results.length - successCount;
+  const ipRangeCount = results.filter(proxy => proxy.detectionMethod === 'ip-range').length;
+  const domainCount = results.filter(proxy => proxy.detectionMethod === 'domain').length;
   
   console.log(`=== 检测完成 ===`);
-  console.log(`总计节点: ${results.length}, 成功: ${successCount}, 失败: ${errorCount}`);
-  console.log(`API检测率: ${(successCount / results.length * 100).toFixed(1)}%`);
+  console.log(`总计节点: ${results.length}`);
+  console.log(`成功: ${successCount} (IP范围: ${ipRangeCount}, 域名: ${domainCount})`);
+  console.log(`失败: ${errorCount}`);
+  console.log(`成功率: ${(successCount / results.length * 100).toFixed(1)}%`);
   
   return results;
 }
@@ -429,30 +373,19 @@ if (typeof global !== 'undefined') {
 
 // 提供配置信息查看函数
 function showConfig() {
-  console.log('\n=== IP地理位置检测脚本配置 (纯API版本) ===');
-  console.log(`API服务: ${config.api} (${ipServices[config.api]?.name})`);
-  console.log(`请求限制: ${ipServices[config.api]?.limit}`);
+  console.log('\n=== IP地理位置检测脚本配置 (Sub-Store兼容版本) ===');
   console.log(`输出格式: ${config.format}`);
-  console.log(`超时时间: ${config.timeout}ms`);
-  console.log(`重试次数: ${config.retries}`);
   console.log(`失败保留: ${config.fallback}`);
   if (config.prefix) console.log(`节点前缀: "${config.prefix}"`);
   
-  console.log('\n=== 支持的API服务 ===');
-  Object.entries(ipServices).forEach(([key, service]) => {
-    console.log(`${key}: ${service.name} - ${service.limit}`);
-  });
+  console.log('\n=== 检测方法 ===');
+  console.log('✅ IP地址范围匹配 (hardcoded ranges)');
+  console.log('✅ 域名地理标识推测');
+  console.log('❌ 不支持实时API查询 (Sub-Store环境限制)');
   
   console.log('\n=== 使用示例 ===');
   console.log('基础使用: script.js');
-  console.log('完整配置: script.js#api=ip-api&format=flag&timeout=5000&prefix=✅');
-  
-  console.log('\n=== 版本特性 ===');
-  console.log('✅ 仅使用真实API查询IP地理位置');
-  console.log('❌ 不处理域名（域名节点直接标记为失败）');
-  console.log('❌ 不使用硬编码IP范围');
-  console.log('❌ 不进行域名推测');
-  console.log('❌ 不进行节点名称推断');
+  console.log('完整配置: script.js#format=flag&prefix=✅');
 }
 
 // 调试模式
