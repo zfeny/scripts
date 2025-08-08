@@ -241,12 +241,16 @@ rules:
 ## 个人规则
   - IP-CIDR,192.168.0.0/24,DIRECT
   - IP-CIDR,192.168.1.0/24,DIRECT
-  - IP-CIDR,159.54.178.253/32,DIRECT
-  - IP-CIDR,152.53.178.102/32,DIRECT
+  - IP-CIDR,192.168.10.0/24,DIRECT
+  - IP-CIDR,159.54.178.253/32,🚀代理方案
+  - IP-CIDR,152.53.178.102/32,🚀代理方案
+  - IP-CIDR,100.95.136.1/32,DIRECT
 
-  - DOMAIN-SUFFIX,630516.xyz,DIRECT
+  - DOMAIN-SUFFIX,630516.xyz,📉下载专用
   - DOMAIN-SUFFIX,534612.xyz,DIRECT
-  - DOMAIN-SUFFIX,919516.xyz,DIRECT
+  - DOMAIN-SUFFIX,zfeny.com,DIRECT
+  - DOMAIN-SUFFIX,zfeny.eu,🚀代理方案
+  - DOMAIN-SUFFIX,919516.xyz,🚀代理方案
 
   - DOMAIN,nav-edge.smartscreen.microsoft.com,DIRECT
   - DOMAIN,lucide.dev,DIRECT
@@ -259,13 +263,15 @@ rules:
   - DOMAIN-SUFFIX,acgrip.com,DIRECT
   # - DOMAIN-SUFFIX,auth0.com,DIRECT
   - DOMAIN-SUFFIX,cnki.net,DIRECT
+  - DOMAIN-SUFFIX,cscecos.com,DIRECT
   - DOMAIN-SUFFIX,customercontrolpanel.de,DIRECT
   - DOMAIN-SUFFIX,deeplx.org,DIRECT
   - DOMAIN-SUFFIX,dianqilianmeng.com,DIRECT
   - DOMAIN-SUFFIX,googlevideo.com,🚀代理方案
   - DOMAIN-SUFFIX,mineru.net,DIRECT
   - DOMAIN-SUFFIX,mypikpak.com,📉下载专用
-  - DOMAIN-SUFFIX,mypt.cc,DIRECT
+  # - DOMAIN-SUFFIX,mypt.cc,DIRECT
+  - DOMAIN-SUFFIX,nodeseek.com,DIRECT
   - DOMAIN-SUFFIX,icourse163.org,DIRECT
   # - DOMAIN-SUFFIX,infini.money,DIRECT
   - DOMAIN-SUFFIX,ivcbt.com,DIRECT
@@ -275,10 +281,12 @@ rules:
   - DOMAIN-SUFFIX,netcup.com,DIRECT
   # - DOMAIN-SUFFIX,oracle.com,DIRECT
   # - DOMAIN-SUFFIX,oraclecloud.com,DIRECT
+  - DOMAIN-SUFFIX,tendawifi.com,DIRECT
   - DOMAIN-SUFFIX,zhihu.com,DIRECT
   - DOMAIN-SUFFIX,zhimg.com,DIRECT
 
   - PROCESS-NAME,aria2c_gj4hq.exe,DIRECT
+  - PROCESS-NAME,Doubao.exe,DIRECT
   - PROCESS-NAME,OneDrive.exe,📉下载专用
   - PROCESS-NAME,ssh.exe,DIRECT
   - PROCESS-NAME,Termius.exe,DIRECT
@@ -286,6 +294,7 @@ rules:
   - PROCESS-NAME,DownloadServer.exe,📉下载专用
   - PROCESS-NAME,PikPak.exe,📉下载专用
   - PROCESS-NAME,steam.exe,DIRECT
+  - PROCESS-NAME,Wocalcscec.exe,DIRECT
 
 ## 规则组
   # - RULE-SET,AdBlock,REJECT

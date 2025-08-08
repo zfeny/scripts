@@ -3,8 +3,10 @@
 # 重启命令 systemctl restart mihomo
 # ---------------------------------------------------
 mixed-port: 7890              # 混合代理端口 (同时支持HTTP和SOCKS5)
-# socks-port: 7891              # 专用SOCKS5代理端口 (已注释，因为mixed-port已包含)
-# port: 7892                    # 专用HTTP代理端口 (已注释，因为mixed-port已包含)
+socks-port: 7891              # 专用SOCKS5代理端口 (已注释，因为mixed-port已包含)
+port: 7892                    # 专用HTTP代理端口 (已注释，因为mixed-port已包含)
+redir-port: 0                 # 重定向端口
+tproxy-port: 0                # TPROXY端口
 allow-lan: true               # [已修正] 允许局域网连接。设为true以匹配bind-address:"*"并允许Docker等访问
 bind-address: "*"             # 监听地址, "*" 表示监听所有网络接口
 mode: rule                    # 代理模式: rule(规则), global(全局), direct(直连)
@@ -12,29 +14,25 @@ log-level: info               # [优化] 日志级别: 调整为 info, 可减少
 ipv6: true                    # 开启IPv6支持
 
 # ---------------------------------------------------
-# 外部控制 & Web UI
-# ---------------------------------------------------
-external-controller: '0.0.0.0:9091' # 外部控制器API, 0.0.0.0允许局域网访问
-external-ui: '/etc/mihomo/ui'       # 外部UI路径
-secret: "8907089"                   # 外部控制器密码 (请务必修改为一个复杂的密码)
-
-# ---------------------------------------------------
 # 网络与连接设置 (Network & Connection Settings)
 # ---------------------------------------------------
 unified-delay: true           # 统一显示节点延迟
 tcp-concurrent: true          # 并发TCP连接，可加速网页加载
 find-process-mode: strict     # 进程匹配模式: strict(严格), always(总是)
+global-client-fingerprint: chrome # 全局客户端指纹: chrome(Chrome浏览器), firefox(Firefox浏览器), safari(Safari浏览器)
 authentication: []            # 认证设置 (留空表示无需密码)
 skip-auth-prefixes:           # 跳过认证的IP段 (例如本机和Docker网段)
   - 127.0.0.1/32
-  - 172.17.0.0/16
-  - 172.24.0.0/16
-  - 192.168.1.5/32
+lan-allowed-ips:              # 允许局域网访问的IP段
+  - 0.0.0.0/0
+  - ::/0
+lan-disallowed-ips: []        # 不允许局域网访问的IP段 (留空表示不限制)
 
 # ---------------------------------------------------
 # 性能调优 (Performance Tuning)
 # ---------------------------------------------------
-keep-alive-interval: 15       # TCP保活心跳间隔(秒), 防止连接被NAT中断
+keep-alive-idle: 600          # TCP保活空闲时间(秒), 防止连接被NAT中断
+keep-alive-interval: 30       # TCP保活心跳间隔(秒), 防止连接被NAT中断
 inbound-tfo: true             # 入站TCP Fast Open, 加速重复连接
 outbound-tfo: true            # 出站TCP Fast Open, 加速重复连接
 
@@ -42,14 +40,18 @@ outbound-tfo: true            # 出站TCP Fast Open, 加速重复连接
 # TUN 模式 (TUN Mode) - 接管系统所有网络流量
 # ---------------------------------------------------
 tun:
-  enable: false               # 启用TUN模式
+  enable: true                # 启用TUN模式
   device: Mihomo              # 虚拟网卡名称
   stack: system               # 网络协议栈: system(兼容性好), gvisor
   auto-route: true            # 自动设置路由表
+  auto-redirect: true         # 自动重定向流量到TUN接口 (false表示不自动重定向)
   auto-detect-interface: true # 自动检测出口网络接口
   dns-hijack:                 # DNS劫持, 将所有53端口的DNS请求交给Mihomo处理
-    - any:53
+    - "any:53"                # 劫持所有DNS请求
+    - "tcp://any:53"          # 劫持TCP DNS请求
   strict-route: true          # 严格路由模式
+  route-exclude-address: []   # 路由排除地址 (不走TUN的IP段)
+  mtu: 1500                   # MTU设置 (1500是常用值)
 
 # ---------------------------------------------------
 # DNS 设置 (DNS Settings)
@@ -58,27 +60,32 @@ dns:
   enable: true                # 启用内置DNS服务器
   ipv6: true                  # DNS查询也走IPv6
   enhanced-mode: fake-ip      # 增强模式: fake-ip(高效), redir-host
-  fake-ip-range: 198.18.0.1/16 # Fake-IP地址池范围
-  fake-ip-filter:             # Fake-IP过滤器 (这些域名不会被分配假IP，以保证兼容性)
-    - +.lan
-    - +.local
-    - time.*.com
-    - ntp.*.com
-    - "*.aliyun.com"          # 保留此项，作为双重保障
-    - +.msftconnecttest.com
-    - +.msftncsi.com
+  fake-ip-range: 28.0.0.1/8   # Fake-IP地址池范围
+  # 黑名单模式表示如果匹配成功则不返回 Fake-IP, 白名单模式时只有匹配成功才返回 Fake-IP
+  fake-ip-filter-mode: blacklist
+  fake-ip-filter:
+    - "+.lan"
+    - "+.local"
+    - geosite:private
+    - geosite:cn
   use-hosts: true             # 使用自定义Hosts文件
   nameserver:                 # 上游DNS服务器 (用于解析国外域名)
-    - https://dns.google/dns-query
-    - https://cloudflare-dns.com/dns-query
-    - quic://fly.dns.vlo.cc
+    - https://8.8.8.8/dns-query
+    - https://1.1.1.1/dns-query
   proxy-server-nameserver:    # 用于解析代理服务器域名的DNS
-    - quic://fly.dns.vlo.cc
+    - quic://223.5.5.5
   direct-nameserver:          # 直连域名使用的DNS (国内)
     - quic://223.5.5.5
     - tls://1.12.12.12
+  default-nameserver:
+    - quic://223.5.5.5
+    - tls://1.12.12.12
   nameserver-policy:          # DNS分流策略 (国内域名走国内DNS)
-    'geosite:cn': 223.5.5.5
+    "geosite:cn": 223.5.5.5
+    "rule-set:private_domain,cn_domain": 223.5.5.5
+    "rule-set:geolocation-!cn":
+      - "https://8.8.8.8/dns-query"
+      - "https://1.1.1.1/dns-query"
   respect-rules: true         # 规则中的域名是否也遵循DNS分流策略
 
 # ---------------------------------------------------
@@ -86,7 +93,9 @@ dns:
 # ---------------------------------------------------
 sniffer:
   enable: true                # 启用流量嗅探
-  override-destination: true  # 覆盖目标地址
+  parse-pure-ip: true         # 解析纯IP流量
+  force-dns-mapping: true     # 强制DNS映射 (将域名解析到IP)
+  override-destination: true  # 覆盖目标地址 (将域名解析到Fake-IP地址)
   sniff:                      # 需要进行嗅探的协议和端口
     HTTP: { ports: [80, "443", "8080-8880"], override-destination: true }
     TLS: { ports: [443, 8443] }
@@ -94,12 +103,19 @@ sniffer:
   skip-domain:                # 跳过嗅探的域名
     - +.push.apple.com
   skip-dst-address:           # 跳过嗅探的目标IP段
-    - '91.105.192.0/23'
-    - '91.108.4.0/22'
-    - '91.108.8.0/21'
-    - '91.108.16.0/21'
-    - '91.108.56.0/22'
-    - '149.154.160.0/20'
+    - 91.105.192.0/23
+    - 91.108.4.0/22
+    - 91.108.8.0/21
+    - 91.108.16.0/21
+    - 91.108.56.0/22
+    - 95.161.64.0/20
+    - 149.154.160.0/20
+    - 185.76.151.0/24
+    - 2001:67c:4e8::/48
+    - 2001:b28:f23c::/47
+    - 2001:b28:f23f::/48
+    - 2a0a:f280:203::/48
+  force-domain: []            # 强制嗅探的域名 (即使在skip-domain中也会嗅探)
 
 # ---------------------------------------------------
 # 规则数据与配置管理 (Rule Data & Profile)
@@ -108,110 +124,366 @@ profile:
   store-selected: true        # 保存上次选择的节点
   store-fake-ip: true         # 为Fake-IP模式下的连接保留真实IP
 geo-auto-update: true         # 自动更新GeoIP和Geosite数据库
-geo-update-interval: 24       # 数据库更新间隔 (小时)
+geo-update-interval: 48       # 数据库更新间隔 (小时)
+geodata-mode: false           # 是否启用地理数据模式 (false表示使用内置的GeoIP和Geosite)
 geox-url:                     # GeoX数据库下载地址
-  geoip: https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip-lite.dat
-  geosite: https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat
-  mmdb: https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.metadb
+  geoip: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip-lite.dat"
+  geosite: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat"
+  mmdb: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.metadb"
+  asn: "https://github.com/xishang0128/geoip/releases/download/latest/GeoLite2-ASN.mmdb"
 
 #================================================================
 # 代理节点, 策略组, 规则 (Proxies, Groups, Rules)
 #================================================================
-proxy-providers:
-  my_proxies:
-    type: file
-    path: "./proxies.yaml"
-    health-check:
-      enable: true
-      url: https://www.gstatic.com/generate_204
-      interval: 300
-
++proxies:
+  - name: "🟢本地直连"
+    type: direct
+    udp: true
+ 
+# 策略组
 proxy-groups:
-  - name: 'NodeSelection'
+  # 主策略组
+  - name: '🚀节点选择'
     type: select
     proxies:
-      - 'AutoSelect'
-      - 'AutoFallback'
-      - 'LoadBalance'
-      - DIRECT
-    use:
-      - my_proxies
+      - '🍵日常低倍'
+      - '🌍地区选择'
+      - '♻️自动选择'
+      - '🏠国外家宽'
+      - '📉下载专用'
+      - '🟢本地直连'
 
-  - name: 'AutoSelect'
+  # 核心策略组
+  - name: '🍵日常低倍'
     type: url-test
-    url: https://www.gstatic.com/generate_204
-    interval: 300
-    tolerance: 100
-    use:
-      - my_proxies
+    include-all: true
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 86400
+    tolerance: 50
+    filter: 7li7li
+    exclude-filter: \s(\d{2,}|[4-9])(\.\d+)?\s?[xX×]|萌云
 
-  - name: 'AutoFallback'
-    type: fallback
-    url: https://www.gstatic.com/generate_204
-    interval: 300
-    use:
-      - my_proxies
+  - name: '🌍地区选择'
+    type: select
+    proxies:
+      - '🇭🇰香港节点'
+      - '🇹🇼台湾节点'
+      - '🇯🇵日本节点'
+      - '🇰🇷韩国节点'
+      - '🇸🇬新加坡节点'
+      - '🇺🇸美国节点'
+      - '🌎其他地区'
 
-  - name: 'LoadBalance'
-    type: load-balance
-    strategy: consistent-hashing
-    url: https://www.gstatic.com/generate_204
-    interval: 300
-    use:
-      - my_proxies
+  - name: '🏠国外家宽'
+    type: select
+    include-all: true
+    filter: Fam
+    exclude-filter: 香港|HK|🇭🇰
 
-rule-providers:
-  Apple:     { type: http, behavior: classical, url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Apple/Apple_Classical.yaml", path: ./ruleset/apple.yaml, interval: 86400, proxy: DIRECT }
-  Telegram:  { type: http, behavior: classical, url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Telegram/Telegram.yaml", path: ./ruleset/telegram.yaml, interval: 86400, proxy: DIRECT }
-  YouTube:   { type: http, behavior: classical, url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/YouTube/YouTube.yaml", path: ./ruleset/youtube.yaml, interval: 86400, proxy: DIRECT }
-  BiliBili:  { type: http, behavior: classical, url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/BiliBili/BiliBili.yaml", path: ./ruleset/bilibili.yaml, interval: 86400, proxy: DIRECT }
-  TikTok:    { type: http, behavior: classical, url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/TikTok/TikTok.yaml", path: ./ruleset/tiktok.yaml, interval: 86400, proxy: DIRECT }
-  Netflix:   { type: http, behavior: classical, url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Netflix/Netflix.yaml", path: ./ruleset/netflix.yaml, interval: 86400, proxy: DIRECT }
-  Google:    { type: http, behavior: classical, url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Google/Google.yaml", path: ./ruleset/google.yaml, interval: 86400, proxy: DIRECT }
-  OpenAI:    { type: http, behavior: classical, url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/OpenAI/OpenAI.yaml", path: ./ruleset/openai.yaml, interval: 86400, proxy: DIRECT }
-  Microsoft: { type: http, behavior: classical, url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Microsoft/Microsoft.yaml", path: ./ruleset/microsoft.yaml, interval: 86400, proxy: DIRECT }
-  Steam:     { type: http, behavior: classical, url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Steam/Steam.yaml", path: ./ruleset/steam.yaml, interval: 86400, proxy: DIRECT }
-  Github:    { type: http, behavior: classical, url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/GitHub/GitHub_No_Resolve.yaml", path: ./ruleset/github.yaml, interval: 86400, proxy: DIRECT }
+  - name: '📉下载专用'
+    type: url-test
+    include-all: true
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 300
+    filter: (?i)(?:[x×倍])\s*0\.\d+|0\.\d+\s*(?:[x×倍])|Test|6bcloud|起帆
+
+  # 应用分流策略组
+
+  - name: '🤖ChatGPT'
+    type: select
+    proxies:
+      - '🏠国外家宽'
+      - '🇺🇸美国节点'
+      - '🇯🇵日本节点'
+      - '🇸🇬新加坡节点'
+      - '🚀节点选择'
+      - '🍵日常低倍'
+      - '📉下载专用'
+      - '🟢本地直连'
+      - '🇭🇰香港节点'
+      - '🇹🇼台湾节点'
+      - '🇰🇷韩国节点'
+      - '🌎其他地区'
+
+  - name: '📹YouTube'
+    type: select
+    proxies:
+      - '📉下载专用'
+      - '🚀节点选择'
+      - '🍵日常低倍'
+      - '🏠国外家宽'
+      - '🟢本地直连'
+      - '🇭🇰香港节点'
+      - '🇹🇼台湾节点'
+      - '🇯🇵日本节点'
+      - '🇰🇷韩国节点'
+      - '🇸🇬新加坡节点'
+      - '🇺🇸美国节点'
+      - '🌎其他地区'
+
+  - name: '🍀Google'
+    type: select
+    proxies:
+      - '🚀节点选择'
+      - '🍵日常低倍'
+      - '🏠国外家宽'
+      - '📉下载专用'
+      - '🟢本地直连'
+      - '🇭🇰香港节点'
+      - '🇹🇼台湾节点'
+      - '🇯🇵日本节点'
+      - '🇰🇷韩国节点'
+      - '🇸🇬新加坡节点'
+      - '🇺🇸美国节点'
+      - '🌎其他地区'
+
+  - name: '🎵TikTok'
+    type: select
+    proxies:
+      - '📉下载专用'
+      - '🚀节点选择'
+      - '🌍地区选择'
+      - '🍵日常低倍'
+      - '🏠国外家宽'
+      - '🟢本地直连'
+      - '🇭🇰香港节点'
+      - '🇹🇼台湾节点'
+      - '🇯🇵日本节点'
+      - '🇰🇷韩国节点'
+      - '🇸🇬新加坡节点'
+      - '🇺🇸美国节点'
+      - '🌎其他地区'
+
+  - name: '👨🏿‍💻GitHub'
+    type: select
+    proxies:
+      - '🚀节点选择'
+      - '🌍地区选择'
+      - '🍵日常低倍'
+      - '🏠国外家宽'
+      - '📉下载专用'
+      - '🟢本地直连'
+
+  - name: '🐬OneDrive'
+    type: select
+    proxies:
+      - '📉下载专用'
+      - '🚀节点选择'
+      - '🌍地区选择'
+      - '🍵日常低倍'
+      - '🏠国外家宽'
+      - '🟢本地直连'
+
+  - name: '🪟Microsoft'
+    type: select
+    proxies:
+      - '🚀节点选择'
+      - '🌍地区选择'
+      - '🍵日常低倍'
+      - '🏠国外家宽'
+      - '📉下载专用'
+      - '🟢本地直连'
+
+  - name: '📲Telegram'
+    type: select
+    proxies:
+      - '📉下载专用'
+      - '🚀节点选择'
+      - '🌍地区选择'
+      - '🍵日常低倍'
+      - '🏠国外家宽'
+      - '🟢本地直连'
+
+  - name: '🎥NETFLIX'
+    type: select
+    proxies:
+      - '📉下载专用'
+      - '🚀节点选择'
+      - '🌍地区选择'
+      - '🍵日常低倍'
+      - '🏠国外家宽'
+      - '🟢本地直连'
+
+  - name: '✈️Speedtest'
+    type: select
+    proxies:
+      - '🟢本地直连'
+      - '🚀节点选择'
+      - '🌍地区选择'
+      - '🍵日常低倍'
+      - '🏠国外家宽'
+      - '📉下载专用'
+
+  - name: '💶PayPal'
+    type: select
+    proxies:
+      - '🚀节点选择'
+      - '🌍地区选择'
+      - '🍵日常低倍'
+      - '🏠国外家宽'
+      - '📉下载专用'
+      - '🟢本地直连'
+
+  - name: '🍎Apple'
+    type: select
+    proxies:
+      - '🟢本地直连'
+      - '🚀节点选择'
+      - '🌍地区选择'
+      - '🍵日常低倍'
+
+  - name: '🐟漏网之鱼'
+    type: select
+    proxies:
+      - '🚀节点选择'
+      - '🌍地区选择'
+      - '🍵日常低倍'
+      - '🏠国外家宽'
+      - '📉下载专用'
+      - '🟢本地直连'
+
+  # 地区节点组
+  - name: '🇭🇰香港节点'
+    type: url-test
+    include-all: true
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 86400
+    tolerance: 50
+    filter: 香港|HK|🇭🇰
+
+  - name: '🇹🇼台湾节点'
+    type: url-test
+    include-all: true
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 86400
+    tolerance: 50
+    filter: 台湾|TW|🇹🇼
+
+  - name: '🇯🇵日本节点'
+    type: url-test
+    include-all: true
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 86400
+    tolerance: 50
+    filter: 日本|JP|🇯🇵
+
+  - name: '🇰🇷韩国节点'
+    type: url-test
+    include-all: true
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 86400
+    tolerance: 50
+    filter: 韩国|KR|🇰🇷
+
+  - name: '🇸🇬新加坡节点'
+    type: url-test
+    include-all: true
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 86400
+    tolerance: 50
+    filter: 新加坡|SG|🇸🇬
+
+  - name: '🇺🇸美国节点'
+    type: url-test
+    include-all: true
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 86400
+    tolerance: 50
+    filter: 美国|US|🇺🇸
+
+  - name: '🌎其他地区'
+    type: url-test
+    include-all: true
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 86400
+    tolerance: 50
+    exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置|香港|HK|🇭🇰|台湾|TW|🇹🇼|日本|JP|🇯🇵|韩国|KR|🇰🇷|新加坡|SG|🇸🇬|美国|US|🇺🇸
+
+  # 自动选择
+  - name: '♻️自动选择'
+    type: url-test
+    include-all: true
+    tolerance: 20
+    interval: 300
+    filter: "^((?!(直连)).)*$"
+
+rule-anchor: # 规则锚点，用于引用规则集
+  ip: &ip {type: http, interval: 86400, behavior: ipcidr, format: mrs}
+  domain: &domain {type: http, interval: 86400, behavior: domain, format: mrs}
+  qcy: &qcy {type: http, interval: 86400, behavior: domain, format: text}
+  class: &class {type: http, interval: 86400, behavior: classical, format: text}
+
+rule-providers: 
+  private_domain: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/private.mrs"}
+  proxylite: {!!merge <<: *qcy, url: "https://raw.githubusercontent.com/qcyhub/rule/master/ProxyLite.list"}
+  ai: {!!merge <<: *qcy, url: "https://raw.githubusercontent.com/qcyhub/rule/master/AI.list"}
+  youtube_domain: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/youtube.mrs"}
+  google_domain: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google.mrs"}
+  github_domain: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/github.mrs"}
+  telegram_domain: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/telegram.mrs"}
+  netflix_domain: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/netflix.mrs"}
+  paypal_domain: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/paypal.mrs"}
+  onedrive_domain: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/onedrive.mrs"}
+  microsoft_domain: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/microsoft.mrs"}
+  apple_domain: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/apple-cn.mrs"}
+  speedtest_domain: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/ookla-speedtest.mrs"}
+  tiktok_domain: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/tiktok.mrs"}
+  gfw_domain: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/gfw.mrs"}
+  geolocation-!cn: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/geolocation-!cn.mrs"}
+  cn_domain: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cn.mrs"}
+  
+  cn_ip: {!!merge <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/cn.mrs"}
+  google_ip: {!!merge <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/google.mrs"}
+  telegram_ip: {!!merge <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/telegram.mrs"}
+  netflix_ip: {!!merge <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/netflix.mrs"}
 
 rules:
   # 个人规则
-  - DST-PORT,123,DIRECT
-  - IP-CIDR,100.64.0.0/10,DIRECT
-  - IP-CIDR,159.54.178.253/32,DIRECT,no-resolve
+  - DST-PORT,123,🟢本地直连
+  - IP-CIDR,100.64.0.0/10,🟢本地直连
+  - IP-CIDR,159.54.178.253/32,🟢本地直连,no-resolve
 
-  - DOMAIN-SUFFIX,534612.xyz,DIRECT
-  - DOMAIN-SUFFIX,630516.xyz,DIRECT
+  - DOMAIN-SUFFIX,534612.xyz,🟢本地直连
+  - DOMAIN-SUFFIX,630516.xyz,🟢本地直连
 
-  - DOMAIN-SUFFIX,18comic.vip,DIRECT
-  - DOMAIN-SUFFIX,aliyun.com,DIRECT
-  - DOMAIN-SUFFIX,cloudflare.com,DIRECT
-  - DOMAIN-SUFFIX,githubcopilot.com,NodeSelection
-  - DOMAIN-SUFFIX,letsencrypt.org,DIRECT
-  - DOMAIN-SUFFIX,ntp.org,DIRECT
-  - DOMAIN-SUFFIX,ntp.ubuntu.com,DIRECT
-  - DOMAIN-KEYWORD,time,DIRECT
-  - DOMAIN-SUFFIX,tailscale.com,DIRECT
-  - DOMAIN-SUFFIX,zerossl.com,DIRECT
+  - DOMAIN-SUFFIX,18comic.vip,🟢本地直连
+  - DOMAIN-SUFFIX,aliyun.com,🟢本地直连
+  - DOMAIN-SUFFIX,cloudflare.com,🟢本地直连
+  - DOMAIN-SUFFIX,githubcopilot.com,🚀节点选择
+  - DOMAIN-SUFFIX,letsencrypt.org,🟢本地直连
+  - DOMAIN-SUFFIX,ntp.org,🟢本地直连
+  - DOMAIN-SUFFIX,ntp.ubuntu.com,🟢本地直连
+  - DOMAIN-KEYWORD,time,🟢本地直连
+  - DOMAIN-SUFFIX,tailscale.com,🟢本地直连
+  - DOMAIN-SUFFIX,zerossl.com,🟢本地直连
 
   # 局域网和本地
-  - DOMAIN-SUFFIX,local,DIRECT
-  - IP-CIDR,127.0.0.0/8,DIRECT,no-resolve
-  - IP-CIDR,192.168.0.0/16,DIRECT,no-resolve
-  - IP-CIDR,10.0.0.0/8,DIRECT,no-resolve
-  - IP-CIDR,172.16.0.0/12,DIRECT,no-resolve
-  - IP-CIDR,172.24.0.0/12,DIRECT,no-resolve
+  - DOMAIN-SUFFIX,local,🟢本地直连
+  - IP-CIDR,127.0.0.0/8,🟢本地直连,no-resolve
+  - IP-CIDR,192.168.0.0/16,🟢本地直连,no-resolve
+  - IP-CIDR,10.0.0.0/8,🟢本地直连,no-resolve
+  - IP-CIDR,172.16.0.0/12,🟢本地直连,no-resolve
+  - IP-CIDR,172.24.0.0/12,🟢本地直连,no-resolve
+  
   # 规则集
-  - RULE-SET,Telegram,NodeSelection
-  - RULE-SET,YouTube,NodeSelection
-  - RULE-SET,BiliBili,DIRECT
-  - RULE-SET,TikTok,NodeSelection
-  - RULE-SET,Netflix,NodeSelection
-  - RULE-SET,Google,NodeSelection
-  - RULE-SET,OpenAI,NodeSelection
-  - RULE-SET,Microsoft,NodeSelection
-  - RULE-SET,Steam,NodeSelection
-  - RULE-SET,Github,NodeSelection
-  # GEOIP兜底
-  - GEOIP,CN,DIRECT
-  # 最终兜底
-  - MATCH,NodeSelection
+  - RULE-SET,private_domain,🟢本地直连
+  - RULE-SET,apple_domain,🍎Apple
+  - RULE-SET,proxylite,🚀节点选择
+  - RULE-SET,ai,🤖ChatGPT
+  - RULE-SET,github_domain,👨🏿‍💻GitHub
+  - RULE-SET,youtube_domain,📹YouTube
+  - RULE-SET,google_domain,🍀Google
+  - RULE-SET,onedrive_domain,🐬OneDrive
+  - RULE-SET,microsoft_domain,🪟Microsoft
+  - RULE-SET,tiktok_domain,🎵TikTok
+  - RULE-SET,speedtest_domain,✈️Speedtest
+  - RULE-SET,telegram_domain,📲Telegram
+  - RULE-SET,netflix_domain,🎥NETFLIX
+  - RULE-SET,paypal_domain,💶PayPal
+  - RULE-SET,geolocation-!cn,🚀节点选择
+  - RULE-SET,cn_domain,🟢本地直连
+  - RULE-SET,google_ip,🍀Google,no-resolve
+  - RULE-SET,netflix_ip,🎥NETFLIX,no-resolve
+  - RULE-SET,telegram_ip,📲Telegram,no-resolve
+  - RULE-SET,cn_ip,🟢本地直连
+  - MATCH,🐟漏网之鱼
