@@ -162,7 +162,7 @@ function extractIPFromProxy(proxy) {
 }
 
 /**
- * 通过IP查询API获取真实地理位置信息（Sub-Store兼容版本）
+ * 通过IP查询API获取真实地理位置信息（Sub-Store Docker兼容版本）
  * @param {string} ip IP地址
  * @returns {Object|null} 地理位置信息
  */
@@ -185,8 +185,6 @@ function queryIPLocationSync(ip) {
       url = `${service.url}${ip}`;
     }
     
-    // 使用Sub-Store环境中的HTTP方法
-    let response;
     let data;
     
     // 尝试使用$httpClient (Surge/Loon环境)
@@ -197,13 +195,13 @@ function queryIPLocationSync(ip) {
         headers: {
           'User-Agent': 'Sub-Store-IP-Detector/4.0'
         },
-        timeout: config.timeout / 1000 // $httpClient使用秒为单位
+        timeout: config.timeout / 1000
       });
       
       if (result && result.body) {
         data = JSON.parse(result.body);
       } else {
-        throw new Error('HTTP请求失败');
+        throw new Error('$httpClient请求失败');
       }
     }
     // 尝试使用$task.fetch (Quantumult X环境)
@@ -221,59 +219,40 @@ function queryIPLocationSync(ip) {
       if (result && result.body) {
         data = JSON.parse(result.body);
       } else {
-        throw new Error('HTTP请求失败');
+        throw new Error('$task.fetch请求失败');
       }
     }
-    // 尝试使用fetch (现代浏览器/Node.js环境)
-    else if (typeof fetch !== 'undefined') {
-      console.log(`🔧 使用fetch进行请求`);
-      // 注意：这里需要同步处理，但fetch是异步的
-      // 在Sub-Store环境中可能需要特殊处理
-      throw new Error('Sub-Store环境不支持异步fetch，请使用其他API方法');
-    }
-    // 最后尝试原生require方法 (Node.js环境)
+    // 尝试使用child_process执行curl命令 (Docker/Linux环境)
     else if (typeof require !== 'undefined') {
-      console.log(`🔧 使用Node.js http模块进行请求`);
-      const https = require('https');
-      const http = require('http');
-      const urlParse = require('url').parse;
-      
-      const parsedUrl = urlParse(url);
-      const client = parsedUrl.protocol === 'https:' ? https : http;
-      
-      // 同步HTTP请求 (Node.js环境)
-      let responseData = '';
-      const req = client.get({
-        hostname: parsedUrl.hostname,
-        port: parsedUrl.port,
-        path: parsedUrl.path,
-        headers: {
-          'User-Agent': 'Sub-Store-IP-Detector/4.0'
-        },
-        timeout: config.timeout
-      }, (res) => {
-        res.on('data', (chunk) => {
-          responseData += chunk;
+      try {
+        console.log(`🔧 使用curl命令进行请求`);
+        const { execSync } = require('child_process');
+        
+        // 构建curl命令
+        const curlCmd = `curl -s -H "User-Agent: Sub-Store-IP-Detector/4.0" --connect-timeout ${Math.ceil(config.timeout/1000)} "${url}"`;
+        console.log(`执行命令: ${curlCmd}`);
+        
+        // 执行curl命令并获取结果
+        const result = execSync(curlCmd, { 
+          encoding: 'utf8',
+          timeout: config.timeout,
+          maxBuffer: 1024 * 1024 // 1MB buffer
         });
-        res.on('end', () => {
-          data = JSON.parse(responseData);
-        });
-      });
-      
-      req.on('error', (error) => {
-        throw error;
-      });
-      
-      req.end();
-      
-      // 等待响应完成
-      while (!data) {
-        // 简单的同步等待
-        require('child_process').execSync('sleep 0.1');
+        
+        if (result && result.trim()) {
+          data = JSON.parse(result.trim());
+          console.log(`🌐 curl请求成功，获取到数据`);
+        } else {
+          throw new Error('curl命令返回空结果');
+        }
+      } catch (curlError) {
+        console.error(`❌ curl请求失败: ${curlError.message}`);
+        throw new Error(`curl命令执行失败: ${curlError.message}`);
       }
     }
+    // 如果都不可用，报告错误
     else {
-      throw new Error('当前环境不支持HTTP请求，无法查询IP地理位置');
+      throw new Error('当前环境不支持HTTP请求（无$httpClient、$task.fetch或curl命令）');
     }
     
     // 检查API响应状态
@@ -281,7 +260,18 @@ function queryIPLocationSync(ip) {
       throw new Error(data.message || 'IP查询失败');
     }
     
+    // 检查数据完整性
+    if (!data || typeof data !== 'object') {
+      throw new Error('API返回的数据格式无效');
+    }
+    
     const locationInfo = service.parseResponse(data);
+    
+    // 验证解析结果
+    if (!locationInfo || !locationInfo.countryCode) {
+      throw new Error('无法解析API返回的地理位置信息');
+    }
+    
     console.log(`✅ IP ${ip} 位置: ${locationInfo.country} (${locationInfo.countryCode})`);
     
     return locationInfo;
