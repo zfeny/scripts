@@ -438,24 +438,63 @@ rule-providers:
   netflix_ip: {!!merge <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/netflix.mrs"}
 
 rules:
-  # 个人规则
-  - DST-PORT,123,🟢本地直连
-  - IP-CIDR,100.64.0.0/10,🟢本地直连
-  - IP-CIDR,159.54.178.253/32,🟢本地直连,no-resolve
+## 个人规则
+  - IP-CIDR,192.168.0.0/24,🟢本地直连
+  - IP-CIDR,192.168.1.0/24,🟢本地直连
+  - IP-CIDR,192.168.10.0/24,🟢本地直连
+  - IP-CIDR,159.54.178.253/32,🚀节点选择
+  - IP-CIDR,152.53.178.102/32,🚀节点选择
+  - IP-CIDR,100.95.136.1/32,🟢本地直连
 
+  - DOMAIN-SUFFIX,630516.xyz,📉下载专用
   - DOMAIN-SUFFIX,534612.xyz,🟢本地直连
-  - DOMAIN-SUFFIX,630516.xyz,🟢本地直连
+  - DOMAIN-SUFFIX,zfeny.com,🟢本地直连
+  - DOMAIN-SUFFIX,zfeny.eu,🚀节点选择
+  - DOMAIN-SUFFIX,919516.xyz,🚀节点选择
+
+  - DOMAIN,nav-edge.smartscreen.microsoft.com,🟢本地直连
+  - DOMAIN,lucide.dev,🟢本地直连
+  - DOMAIN,music.youtube.com,🚀节点选择
 
   - DOMAIN-SUFFIX,18comic.vip,🟢本地直连
-  - DOMAIN-SUFFIX,aliyun.com,🟢本地直连
-  - DOMAIN-SUFFIX,cloudflare.com,🟢本地直连
-  - DOMAIN-SUFFIX,githubcopilot.com,🚀节点选择
-  - DOMAIN-SUFFIX,letsencrypt.org,🟢本地直连
-  - DOMAIN-SUFFIX,ntp.org,🟢本地直连
-  - DOMAIN-SUFFIX,ntp.ubuntu.com,🟢本地直连
-  - DOMAIN-KEYWORD,time,🟢本地直连
-  - DOMAIN-SUFFIX,tailscale.com,🟢本地直连
-  - DOMAIN-SUFFIX,zerossl.com,🟢本地直连
+  - DOMAIN-SUFFIX,adobe.com,🟢本地直连
+  - DOMAIN-SUFFIX,adobe.io,🟢本地直连
+  - DOMAIN-SUFFIX,adobess.com,🟢本地直连
+  - DOMAIN-SUFFIX,acgrip.com,🟢本地直连
+  # - DOMAIN-SUFFIX,auth0.com,🟢本地直连
+  - DOMAIN-SUFFIX,cnki.net,🟢本地直连
+  - DOMAIN-SUFFIX,cscecos.com,🟢本地直连
+  - DOMAIN-SUFFIX,customercontrolpanel.de,🟢本地直连
+  - DOMAIN-SUFFIX,deeplx.org,🟢本地直连
+  - DOMAIN-SUFFIX,dianqilianmeng.com,🟢本地直连
+  - DOMAIN-SUFFIX,googlevideo.com,🚀节点选择
+  - DOMAIN-SUFFIX,mineru.net,🟢本地直连
+  - DOMAIN-SUFFIX,mypikpak.com,📉下载专用
+  # - DOMAIN-SUFFIX,mypt.cc,🟢本地直连
+  - DOMAIN-SUFFIX,nodeseek.com,🟢本地直连
+  - DOMAIN-SUFFIX,icourse163.org,🟢本地直连
+  # - DOMAIN-SUFFIX,infini.money,🟢本地直连
+  - DOMAIN-SUFFIX,ivcbt.com,🟢本地直连
+  - DOMAIN-SUFFIX,linux.do,🟢本地直连
+  - DOMAIN-SUFFIX,mihoyo.com,🟢本地直连
+  # - DOMAIN-SUFFIX,microsoft.com,🟢本地直连
+  - DOMAIN-SUFFIX,netcup.com,🟢本地直连
+  # - DOMAIN-SUFFIX,oracle.com,🟢本地直连
+  # - DOMAIN-SUFFIX,oraclecloud.com,🟢本地直连
+  - DOMAIN-SUFFIX,tendawifi.com,🟢本地直连
+  - DOMAIN-SUFFIX,zhihu.com,🟢本地直连
+  - DOMAIN-SUFFIX,zhimg.com,🟢本地直连
+
+  - PROCESS-NAME,aria2c_gj4hq.exe,🟢本地直连
+  - PROCESS-NAME,Doubao.exe,🟢本地直连
+  - PROCESS-NAME,OneDrive.exe,📉下载专用
+  - PROCESS-NAME,ssh.exe,🟢本地直连
+  - PROCESS-NAME,Termius.exe,🟢本地直连
+  - PROCESS-NAME,GoogleDriveFS.exe,📉下载专用
+  - PROCESS-NAME,DownloadServer.exe,📉下载专用
+  - PROCESS-NAME,PikPak.exe,📉下载专用
+  - PROCESS-NAME,steam.exe,🟢本地直连
+  - PROCESS-NAME,Wocalcscec.exe,🟢本地直连
 
   # 局域网和本地
   - DOMAIN-SUFFIX,local,🟢本地直连
