@@ -6,14 +6,14 @@
  * 更新：2025-08-08
  * 
  * 使用方法：
- * https://raw.githubusercontent.com/zfeny/scripts/refs/heads/main/sub_store/ip_detector_final.js#api=ipinfo&token=bd71953cf5a6f9&format=flag&cleanShortCodes=true&filter=trojan&exclude=test
+ * https://raw.githubusercontent.com/zfeny/scripts/refs/heads/main/sub_store/ip_detector_final.js#api=ipinfo&token=bd71953cf5a6f9&format=flag&cleanShortCodes=true&include=trojan&exclude=test
  * 
  * 参数说明：
  * - api: API服务 (ip-api, ipinfo, ip2location)
  * - token: IPInfo API Token (仅ipinfo需要)
  * - format: 输出格式 (flag, text, both)
  * - cleanShortCodes: 是否清理英文简称如HK、TR等 (true/false)
- * - filter: 过滤条件，仅处理包含此值的节点名称 (为空时处理所有节点)
+ * - include: 包含条件，仅处理包含此值的节点名称 (为空时处理所有节点)
  * - exclude: 排除条件，排除包含此值的节点名称 (为空时不排除任何节点)
  * - debug: 调试模式 (true/false)
  * - timeout: 超时时间毫秒 (默认10000)
@@ -26,7 +26,7 @@ const config = {
   token: scriptArgs.token || '',
   format: scriptArgs.format || 'flag',
   cleanShortCodes: scriptArgs.cleanShortCodes === 'true' || scriptArgs.cleanShortCodes === true || false,
-  filter: scriptArgs.filter || '',
+  include: scriptArgs.include || '',
   exclude: scriptArgs.exclude || '',
   debug: scriptArgs.debug === 'true' || scriptArgs.debug === true,
   timeout: parseInt(scriptArgs.timeout) || 10000
@@ -413,14 +413,14 @@ function operator(proxies) {
   
   // 应用过滤条件
   let filteredProxies = proxies;
-  if (config.filter || config.exclude) {
+  if (config.include || config.exclude) {
     filteredProxies = proxies.filter(proxy => {
       if (!proxy.name) return false;
       
       const name = proxy.name.toLowerCase();
       
-      // 如果设置了 filter，必须包含该关键词
-      const includeMatch = !config.filter || name.includes(config.filter.toLowerCase());
+      // 如果设置了 include，必须包含该关键词
+      const includeMatch = !config.include || name.includes(config.include.toLowerCase());
       
       // 如果设置了 exclude，不能包含该关键词
       const excludeMatch = !config.exclude || !name.includes(config.exclude.toLowerCase());
@@ -429,8 +429,8 @@ function operator(proxies) {
     });
     
     let filterInfo = '';
-    if (config.filter) filterInfo += `包含 "${config.filter}"`;
-    if (config.filter && config.exclude) filterInfo += ' 且 ';
+    if (config.include) filterInfo += `包含 "${config.include}"`;
+    if (config.include && config.exclude) filterInfo += ' 且 ';
     if (config.exclude) filterInfo += `排除 "${config.exclude}"`;
     
     console.log(`📋 过滤条件: ${filterInfo} - 匹配到 ${filteredProxies.length} 个节点`);
@@ -447,15 +447,15 @@ function operator(proxies) {
     if (proxy.name) {
       const name = proxy.name.toLowerCase();
       
-      // 如果设置了 filter，必须包含该关键词
-      const includeMatch = !config.filter || name.includes(config.filter.toLowerCase());
+      // 如果设置了 include，必须包含该关键词
+      const includeMatch = !config.include || name.includes(config.include.toLowerCase());
       
       // 如果设置了 exclude，不能包含该关键词
       const excludeMatch = !config.exclude || !name.includes(config.exclude.toLowerCase());
       
       shouldProcess = includeMatch && excludeMatch;
     } else {
-      shouldProcess = !config.filter; // 没有名称的节点，只有在没有 filter 条件时才处理
+      shouldProcess = !config.include; // 没有名称的节点，只有在没有 include 条件时才处理
     }
     
     if (!shouldProcess) {
