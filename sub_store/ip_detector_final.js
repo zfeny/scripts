@@ -6,10 +6,11 @@
  * 更新：2025-08-08
  * 
  * 使用方法：
- * https://raw.githubusercontent.com/zfeny/scripts/refs/heads/main/sub_store/ip_detector_final.js#api=ip-api&format=flag
+ * https://raw.githubusercontent.com/zfeny/scripts/refs/heads/main/sub_store/ip_detector_final.js#api=ipinfo&token=bd71953cf5a6f9&format=flag
  * 
  * 参数说明：
  * - api: API服务 (ip-api, ipinfo, ip2location)
+ * - token: IPInfo API Token (仅ipinfo需要)
  * - format: 输出格式 (flag, text, both)
  * - debug: 调试模式 (true/false)
  * - timeout: 超时时间毫秒 (默认10000)
@@ -19,6 +20,7 @@
 const scriptArgs = (typeof $arguments !== 'undefined') ? $arguments : {};
 const config = {
   api: scriptArgs.api || 'ip-api',
+  token: scriptArgs.token || '',
   format: scriptArgs.format || 'flag',
   debug: scriptArgs.debug === 'true' || scriptArgs.debug === true,
   timeout: parseInt(scriptArgs.timeout) || 10000
@@ -256,7 +258,11 @@ function queryIPLocationSync(ip) {
     if (config.api === 'ipapi') {
       url = `${service.url}${ip}/json/`;
     } else if (config.api === 'ipinfo') {
-      url = `${service.url}${ip}/json`;
+      url = config.token 
+        ? `${service.url}${ip}/json?token=${config.token}`
+        : `${service.url}${ip}/json`;
+    } else if (config.api === 'ip2location') {
+      url = `${service.url}${ip}`;
     } else {
       url = `${service.url}${ip}`;
     }
