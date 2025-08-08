@@ -1,0 +1,217 @@
+# ---------------------------------------------------
+# 基础代理设置 (Core Proxy Settings)
+# 重启命令 systemctl restart mihomo
+# ---------------------------------------------------
+mixed-port: 7890              # 混合代理端口 (同时支持HTTP和SOCKS5)
+# socks-port: 7891              # 专用SOCKS5代理端口 (已注释，因为mixed-port已包含)
+# port: 7892                    # 专用HTTP代理端口 (已注释，因为mixed-port已包含)
+allow-lan: true               # [已修正] 允许局域网连接。设为true以匹配bind-address:"*"并允许Docker等访问
+bind-address: "*"             # 监听地址, "*" 表示监听所有网络接口
+mode: rule                    # 代理模式: rule(规则), global(全局), direct(直连)
+log-level: info               # [优化] 日志级别: 调整为 info, 可减少不必要的日志刷屏。需要排错时再改为 debug
+ipv6: true                    # 开启IPv6支持
+
+# ---------------------------------------------------
+# 外部控制 & Web UI
+# ---------------------------------------------------
+external-controller: '0.0.0.0:9091' # 外部控制器API, 0.0.0.0允许局域网访问
+external-ui: '/etc/mihomo/ui'       # 外部UI路径
+secret: "8907089"                   # 外部控制器密码 (请务必修改为一个复杂的密码)
+
+# ---------------------------------------------------
+# 网络与连接设置 (Network & Connection Settings)
+# ---------------------------------------------------
+unified-delay: true           # 统一显示节点延迟
+tcp-concurrent: true          # 并发TCP连接，可加速网页加载
+find-process-mode: strict     # 进程匹配模式: strict(严格), always(总是)
+authentication: []            # 认证设置 (留空表示无需密码)
+skip-auth-prefixes:           # 跳过认证的IP段 (例如本机和Docker网段)
+  - 127.0.0.1/32
+  - 172.17.0.0/16
+  - 172.24.0.0/16
+  - 192.168.1.5/32
+
+# ---------------------------------------------------
+# 性能调优 (Performance Tuning)
+# ---------------------------------------------------
+keep-alive-interval: 15       # TCP保活心跳间隔(秒), 防止连接被NAT中断
+inbound-tfo: true             # 入站TCP Fast Open, 加速重复连接
+outbound-tfo: true            # 出站TCP Fast Open, 加速重复连接
+
+# ---------------------------------------------------
+# TUN 模式 (TUN Mode) - 接管系统所有网络流量
+# ---------------------------------------------------
+tun:
+  enable: false               # 启用TUN模式
+  device: Mihomo              # 虚拟网卡名称
+  stack: system               # 网络协议栈: system(兼容性好), gvisor
+  auto-route: true            # 自动设置路由表
+  auto-detect-interface: true # 自动检测出口网络接口
+  dns-hijack:                 # DNS劫持, 将所有53端口的DNS请求交给Mihomo处理
+    - any:53
+  strict-route: true          # 严格路由模式
+
+# ---------------------------------------------------
+# DNS 设置 (DNS Settings)
+# ---------------------------------------------------
+dns:
+  enable: true                # 启用内置DNS服务器
+  ipv6: true                  # DNS查询也走IPv6
+  enhanced-mode: fake-ip      # 增强模式: fake-ip(高效), redir-host
+  fake-ip-range: 198.18.0.1/16 # Fake-IP地址池范围
+  fake-ip-filter:             # Fake-IP过滤器 (这些域名不会被分配假IP，以保证兼容性)
+    - +.lan
+    - +.local
+    - time.*.com
+    - ntp.*.com
+    - "*.aliyun.com"          # 保留此项，作为双重保障
+    - +.msftconnecttest.com
+    - +.msftncsi.com
+  use-hosts: true             # 使用自定义Hosts文件
+  nameserver:                 # 上游DNS服务器 (用于解析国外域名)
+    - https://dns.google/dns-query
+    - https://cloudflare-dns.com/dns-query
+    - quic://fly.dns.vlo.cc
+  proxy-server-nameserver:    # 用于解析代理服务器域名的DNS
+    - quic://fly.dns.vlo.cc
+  direct-nameserver:          # 直连域名使用的DNS (国内)
+    - quic://223.5.5.5
+    - tls://1.12.12.12
+  nameserver-policy:          # DNS分流策略 (国内域名走国内DNS)
+    'geosite:cn': 223.5.5.5
+  respect-rules: true         # 规则中的域名是否也遵循DNS分流策略
+
+# ---------------------------------------------------
+# 流量嗅探 (Sniffer Settings) - 在TUN模式下会自动关闭，此为正常现象
+# ---------------------------------------------------
+sniffer:
+  enable: true                # 启用流量嗅探
+  override-destination: true  # 覆盖目标地址
+  sniff:                      # 需要进行嗅探的协议和端口
+    HTTP: { ports: [80, "443", "8080-8880"], override-destination: true }
+    TLS: { ports: [443, 8443] }
+    QUIC: { ports: [443, 8443] }
+  skip-domain:                # 跳过嗅探的域名
+    - +.push.apple.com
+  skip-dst-address:           # 跳过嗅探的目标IP段
+    - '91.105.192.0/23'
+    - '91.108.4.0/22'
+    - '91.108.8.0/21'
+    - '91.108.16.0/21'
+    - '91.108.56.0/22'
+    - '149.154.160.0/20'
+
+# ---------------------------------------------------
+# 规则数据与配置管理 (Rule Data & Profile)
+# ---------------------------------------------------
+profile:
+  store-selected: true        # 保存上次选择的节点
+  store-fake-ip: true         # 为Fake-IP模式下的连接保留真实IP
+geo-auto-update: true         # 自动更新GeoIP和Geosite数据库
+geo-update-interval: 24       # 数据库更新间隔 (小时)
+geox-url:                     # GeoX数据库下载地址
+  geoip: https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip-lite.dat
+  geosite: https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat
+  mmdb: https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.metadb
+
+#================================================================
+# 代理节点, 策略组, 规则 (Proxies, Groups, Rules)
+#================================================================
+proxy-providers:
+  my_proxies:
+    type: file
+    path: "./proxies.yaml"
+    health-check:
+      enable: true
+      url: https://www.gstatic.com/generate_204
+      interval: 300
+
+proxy-groups:
+  - name: 'NodeSelection'
+    type: select
+    proxies:
+      - 'AutoSelect'
+      - 'AutoFallback'
+      - 'LoadBalance'
+      - DIRECT
+    use:
+      - my_proxies
+
+  - name: 'AutoSelect'
+    type: url-test
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 100
+    use:
+      - my_proxies
+
+  - name: 'AutoFallback'
+    type: fallback
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    use:
+      - my_proxies
+
+  - name: 'LoadBalance'
+    type: load-balance
+    strategy: consistent-hashing
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    use:
+      - my_proxies
+
+rule-providers:
+  Apple:     { type: http, behavior: classical, url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Apple/Apple_Classical.yaml", path: ./ruleset/apple.yaml, interval: 86400, proxy: DIRECT }
+  Telegram:  { type: http, behavior: classical, url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Telegram/Telegram.yaml", path: ./ruleset/telegram.yaml, interval: 86400, proxy: DIRECT }
+  YouTube:   { type: http, behavior: classical, url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/YouTube/YouTube.yaml", path: ./ruleset/youtube.yaml, interval: 86400, proxy: DIRECT }
+  BiliBili:  { type: http, behavior: classical, url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/BiliBili/BiliBili.yaml", path: ./ruleset/bilibili.yaml, interval: 86400, proxy: DIRECT }
+  TikTok:    { type: http, behavior: classical, url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/TikTok/TikTok.yaml", path: ./ruleset/tiktok.yaml, interval: 86400, proxy: DIRECT }
+  Netflix:   { type: http, behavior: classical, url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Netflix/Netflix.yaml", path: ./ruleset/netflix.yaml, interval: 86400, proxy: DIRECT }
+  Google:    { type: http, behavior: classical, url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Google/Google.yaml", path: ./ruleset/google.yaml, interval: 86400, proxy: DIRECT }
+  OpenAI:    { type: http, behavior: classical, url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/OpenAI/OpenAI.yaml", path: ./ruleset/openai.yaml, interval: 86400, proxy: DIRECT }
+  Microsoft: { type: http, behavior: classical, url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Microsoft/Microsoft.yaml", path: ./ruleset/microsoft.yaml, interval: 86400, proxy: DIRECT }
+  Steam:     { type: http, behavior: classical, url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Steam/Steam.yaml", path: ./ruleset/steam.yaml, interval: 86400, proxy: DIRECT }
+  Github:    { type: http, behavior: classical, url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/GitHub/GitHub_No_Resolve.yaml", path: ./ruleset/github.yaml, interval: 86400, proxy: DIRECT }
+
+rules:
+  # 个人规则
+  - DST-PORT,123,DIRECT
+  - IP-CIDR,100.64.0.0/10,DIRECT
+  - IP-CIDR,159.54.178.253/32,DIRECT,no-resolve
+
+  - DOMAIN-SUFFIX,534612.xyz,DIRECT
+  - DOMAIN-SUFFIX,630516.xyz,DIRECT
+
+  - DOMAIN-SUFFIX,18comic.vip,DIRECT
+  - DOMAIN-SUFFIX,aliyun.com,DIRECT
+  - DOMAIN-SUFFIX,cloudflare.com,DIRECT
+  - DOMAIN-SUFFIX,githubcopilot.com,NodeSelection
+  - DOMAIN-SUFFIX,letsencrypt.org,DIRECT
+  - DOMAIN-SUFFIX,ntp.org,DIRECT
+  - DOMAIN-SUFFIX,ntp.ubuntu.com,DIRECT
+  - DOMAIN-KEYWORD,time,DIRECT
+  - DOMAIN-SUFFIX,tailscale.com,DIRECT
+  - DOMAIN-SUFFIX,zerossl.com,DIRECT
+
+  # 局域网和本地
+  - DOMAIN-SUFFIX,local,DIRECT
+  - IP-CIDR,127.0.0.0/8,DIRECT,no-resolve
+  - IP-CIDR,192.168.0.0/16,DIRECT,no-resolve
+  - IP-CIDR,10.0.0.0/8,DIRECT,no-resolve
+  - IP-CIDR,172.16.0.0/12,DIRECT,no-resolve
+  - IP-CIDR,172.24.0.0/12,DIRECT,no-resolve
+  # 规则集
+  - RULE-SET,Telegram,NodeSelection
+  - RULE-SET,YouTube,NodeSelection
+  - RULE-SET,BiliBili,DIRECT
+  - RULE-SET,TikTok,NodeSelection
+  - RULE-SET,Netflix,NodeSelection
+  - RULE-SET,Google,NodeSelection
+  - RULE-SET,OpenAI,NodeSelection
+  - RULE-SET,Microsoft,NodeSelection
+  - RULE-SET,Steam,NodeSelection
+  - RULE-SET,Github,NodeSelection
+  # GEOIP兜底
+  - GEOIP,CN,DIRECT
+  # 最终兜底
+  - MATCH,NodeSelection
