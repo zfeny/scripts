@@ -6,12 +6,11 @@
  * 更新：2025-08-08
  * 
  * 使用方法：
- * https://raw.githubusercontent.com/zfeny/scripts/refs/heads/main/sub_store/ip_detector_final.js#api=ip-api&format=flag&prefix=✅
+ * https://raw.githubusercontent.com/zfeny/scripts/refs/heads/main/sub_store/ip_detector_final.js#api=ip-api&format=flag
  * 
  * 参数说明：
  * - api: API服务 (ip-api, ipinfo, ip2location)
  * - format: 输出格式 (flag, text, both)
- * - prefix: 前缀标识 (如: ✅, 🌍, 📍)
  * - debug: 调试模式 (true/false)
  * - timeout: 超时时间毫秒 (默认10000)
  */
@@ -21,7 +20,6 @@ const scriptArgs = (typeof $arguments !== 'undefined') ? $arguments : {};
 const config = {
   api: scriptArgs.api || 'ip-api',
   format: scriptArgs.format || 'flag',
-  prefix: scriptArgs.prefix || '✅',
   debug: scriptArgs.debug === 'true' || scriptArgs.debug === true,
   timeout: parseInt(scriptArgs.timeout) || 10000
 };
@@ -379,18 +377,18 @@ function generateNewNodeName(cleanedName, locationInfo, originalName) {
   
   switch (config.format) {
     case 'flag':
-      return config.prefix ? `${config.prefix} ${flag} ${cleanedName}` : `${flag} ${cleanedName}`;
+      return `${flag} ${cleanedName}`;
     
     case 'text':
       const countryName = getCountryName(locationInfo.countryCode);
-      return config.prefix ? `${config.prefix} ${countryName} ${cleanedName}` : `${countryName} ${cleanedName}`;
+      return `${countryName} ${cleanedName}`;
     
     case 'both':
       const country = getCountryName(locationInfo.countryCode);
-      return config.prefix ? `${config.prefix} ${flag} ${country} ${cleanedName}` : `${flag} ${country} ${cleanedName}`;
+      return `${flag} ${country} ${cleanedName}`;
     
     default:
-      return config.prefix ? `${config.prefix} ${flag} ${cleanedName}` : `${flag} ${cleanedName}`;
+      return `${flag} ${cleanedName}`;
   }
 }
 
