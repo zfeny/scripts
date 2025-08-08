@@ -172,12 +172,12 @@ const regionCleanRules = {
   '🇨🇿': /捷克|捷克共和国|CZ|Czech/gi,
   '🇧🇦': /波黑|波斯尼亚和黑塞哥维那|波黑共和国|BA|Bosnia/gi,
   
-  // 通用地区标识清理
-  'CLEAN_GENERIC': /[\u4e00-\u9fff]+(港|台|日|韩|新|美|英|德|法|澳|加|俄|土|印|泰|越|菲|马|阿|瑞|孟|捷|波)/gi,
+  // 通用地区标识清理 - 但保留有用信息
+  'CLEAN_GENERIC': /[\u4e00-\u9fff]+(港|台|日|韩|新|美|英|德|法|澳|加|俄|土|印|泰|越|菲|马|阿|瑞|孟|捷|波)(?![a-zA-Z])/gi,
   'CLEAN_BRACKETS': /[\(\[【][\u4e00-\u9fff\w\s\-\.]+[\)\]】]/gi,
-  'CLEAN_NODES': /(节点|代理|服务器|专线|中继|IPLC|IEPL|BGP|线路|机房|数据中心)/gi,
-  'CLEAN_NUMBERS': /\s*[\-\|]\s*\d+/gi,
-  'CLEAN_EXTRA': /(高速|优化|专用|标准|精品|企业|家宽|商宽)/gi
+  'CLEAN_NODES': /(节点|代理|服务器|专线|中继|线路|机房|数据中心)/gi,
+  'CLEAN_NUMBERS': /\s*[\-\|]\s*\d+$/gi,
+  // 移除 CLEAN_EXTRA 规则，保留 优化、ChatGPT、IPLC、IEPL、BGP、三网 等有用信息
 };
 
 /**
