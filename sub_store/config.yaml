@@ -158,7 +158,7 @@ proxy-groups:
     type: url-test
     include-all: true
     url: 'https://www.gstatic.com/generate_204'
-    interval: 86400
+    interval: 1200
     tolerance: 50
     filter: 7li7li
     exclude-filter: \s(\d{2,}|[4-9])(\.\d+)?\s?[xX×]|萌云
@@ -175,10 +175,13 @@ proxy-groups:
       - '🌎其他地区'
 
   - name: '🏠国外家宽'
-    type: select
+    type: url-test
     include-all: true
     filter: Fam|7li7li
     exclude-filter: 香港|HK|🇭🇰
+    url: 'https://www.gstatic.com/generate_204'
+    interval: 600
+    tolerance: 50
 
   - name: '📉下载专用'
     type: url-test
