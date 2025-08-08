@@ -2,16 +2,17 @@
  * Sub-Store IP地理位置检测脚本 - 最终版
  * 功能：通过API精准检测代理节点真实IP地理位置，清除原有地区标识，只保留API获取的国别flag
  * 作者：zfeny
- * 版本：5.0 Final
+ * 版本：6.0 Final
  * 更新：2025-08-08
  * 
  * 使用方法：
- * https://raw.githubusercontent.com/zfeny/scripts/refs/heads/main/sub_store/ip_detector_final.js#api=ipinfo&token=bd71953cf5a6f9&format=flag
+ * https://raw.githubusercontent.com/zfeny/scripts/refs/heads/main/sub_store/ip_detector_final.js#api=ipinfo&token=bd71953cf5a6f9&format=flag&cleanShortCodes=true
  * 
  * 参数说明：
  * - api: API服务 (ip-api, ipinfo, ip2location)
  * - token: IPInfo API Token (仅ipinfo需要)
  * - format: 输出格式 (flag, text, both)
+ * - cleanShortCodes: 是否清理英文简称如HK、TR等 (true/false)
  * - debug: 调试模式 (true/false)
  * - timeout: 超时时间毫秒 (默认10000)
  */
@@ -22,6 +23,7 @@ const config = {
   api: scriptArgs.api || 'ip-api',
   token: scriptArgs.token || '',
   format: scriptArgs.format || 'flag',
+  cleanShortCodes: scriptArgs.cleanShortCodes === 'true' || scriptArgs.cleanShortCodes === true,
   debug: scriptArgs.debug === 'true' || scriptArgs.debug === true,
   timeout: parseInt(scriptArgs.timeout) || 10000
 };
@@ -144,40 +146,24 @@ const countryNames = {
   'ZA': '南非', 'ZM': '赞比亚', 'ZW': '津巴布韦'
 };
 
-// 地区清理规则 - 借鉴rename.js的清理逻辑
+// 地区清理规则 - 专注于清理国别标识
 const regionCleanRules = {
-  // 国家/地区名称清理
-  '🇭🇰': /香港|港|HK|Hong\s?Kong|Hongkong|HONG\s?KONG|(深|沪|呼|京|广|杭)港(?!.*(I|线))/gi,
-  '🇹🇼': /台湾|台|TW|Taiwan|Taipei|新台|新北|台(?!.*线)/gi,
-  '🇯🇵': /日本|日|JP|Japan|Tokyo|Osaka|东京|大坂|(深|沪|呼|京|广|杭|中|辽)日(?!.*(I|线))/gi,
-  '🇰🇷': /韩国|韩|KR|Korea|Seoul|首尔|春川/gi,
-  '🇸🇬': /新加坡|新|SG|Singapore|狮城|(深|沪|呼|京|广|杭)新/gi,
-  '🇺🇸': /美国|美|US|USA|United\s?States|Los\s?Angeles|San\s?Jose|Silicon\s?Valley|Michigan|波特兰|芝加哥|哥伦布|纽约|硅谷|俄勒冈|西雅图|(深|沪|呼|京|广|杭)美/gi,
-  '🇬🇧': /英国|英|GB|UK|United\s?Kingdom|London|Great\s?Britain|伦敦/gi,
-  '🇩🇪': /德国|德|DE|Germany|Frankfurt|法兰克福|(深|沪|呼|京|广|杭)德(?!.*(I|线))|滬德/gi,
-  '🇫🇷': /法国|法|FR|France|Paris|巴黎/gi,
-  '🇦🇺': /澳大利亚|澳洲|澳|AU|Australia|墨尔本|悉尼|土澳|(深|沪|呼|京|广|杭)澳/gi,
-  '🇨🇦': /加拿大|加|CA|Canada/gi,
-  '🇷🇺': /俄罗斯|俄|RU|Russia|Moscow|莫斯科/gi,
-  '🇹🇷': /土耳其|土|TR|Turkey|伊斯坦布尔/gi,
-  '🇮🇳': /印度|印|IN|India|Mumbai|孟买/gi,
-  '🇮🇩': /印尼|印度尼西亚|ID|Indonesia|雅加达/gi,
-  '🇹🇭': /泰国|泰|TH|Thailand|泰國|曼谷/gi,
-  '🇻🇳': /越南|越|VN|Vietnam/gi,
-  '🇵🇭': /菲律宾|菲|PH|Philippines/gi,
-  '🇲🇾': /马来西亚|马来|马|MY|Malaysia/gi,
-  '🇦🇪': /阿联酋|阿拉伯联合酋长国|AE|UAE|Dubai|迪拜|United\s?Arab\s?Emirates/gi,
-  '🇨🇭': /瑞士|瑞|CH|Switzerland|Zurich/gi,
-  '🇧🇩': /孟加拉国|孟加拉|BD|Bangladesh/gi,
-  '🇨🇿': /捷克|捷克共和国|CZ|Czech/gi,
-  '🇧🇦': /波黑|波斯尼亚和黑塞哥维那|波黑共和国|BA|Bosnia/gi,
+  // 清理所有国家flag emoji (优先级最高)
+  'CLEAN_FLAGS': /🇦🇩|🇦🇪|🇦🇫|🇦🇬|🇦🇮|🇦🇱|🇦🇲|🇦🇴|🇦🇶|🇦🇷|🇦🇸|🇦🇹|�🇺|🇦🇼|🇦🇽|🇦🇿|🇧🇦|🇧🇧|🇧🇩|🇧🇪|🇧🇫|🇧🇬|🇧🇭|🇧🇮|🇧🇯|🇧🇱|🇧🇲|🇧🇳|🇧🇴|🇧🇶|🇧🇷|🇧🇸|🇧�🇹|�🇻|🇧�🇼|🇧🇾|🇧🇿|🇨🇦|🇨🇨|🇨🇩|🇨🇫|�🇬|🇨🇭|🇨🇮|🇨🇰|🇨🇱|🇨🇲|🇨🇳|🇨🇴|🇨🇷|🇨🇺|🇨🇻|🇨🇼|🇨🇽|🇨🇾|🇨🇿|🇩🇪|🇩�🇯|�🇰|🇩🇲|🇩🇴|🇩🇿|🇪🇨|🇪🇪|🇪🇬|🇪🇭|🇪🇷|🇪🇸|🇪🇹|🇫🇮|🇫🇯|🇫🇰|🇫🇲|🇫🇴|🇫🇷|🇬🇦|🇬🇧|🇬🇩|🇬🇪|🇬🇫|🇬🇬|🇬🇭|🇬🇮|🇬🇱|🇬🇲|🇬🇳|🇬�🇵|🇬🇶|🇬🇷|🇬🇸|🇬🇹|🇬🇺|🇬🇼|🇬🇾|🇭🇰|🇭🇲|🇭🇳|🇭🇷|🇭🇹|🇭🇺|🇮🇩|🇮🇪|🇮🇱|🇮🇲|🇮🇳|🇮🇴|🇮🇶|🇮🇷|🇮🇸|🇮🇹|🇯🇪|🇯🇲|🇯🇴|🇯🇵|🇰🇪|🇰🇬|🇰🇭|🇰🇮|🇰🇲|🇰🇳|🇰🇵|🇰🇷|🇰🇼|🇰🇾|🇰🇿|🇱🇦|🇱🇧|🇱🇨|🇱🇮|🇱🇰|🇱🇷|🇱🇸|🇱🇹|🇱🇺|🇱🇻|🇱🇾|🇲🇦|🇲🇨|🇲🇩|🇲🇪|🇲🇫|🇲🇬|🇲🇭|🇲🇰|🇲🇱|🇲🇲|🇲🇳|🇲🇴|🇲🇵|🇲🇶|🇲🇷|🇲🇸|🇲🇹|🇲🇺|🇲🇻|🇲🇼|🇲🇽|🇲🇾|🇲🇿|🇳🇦|🇳🇨|🇳🇪|🇳🇫|🇳🇬|🇳🇮|🇳🇱|🇳🇴|🇳🇵|🇳🇷|🇳🇺|🇳🇿|🇴🇲|🇵🇦|🇵🇪|🇵🇫|🇵🇬|🇵🇭|🇵🇰|🇵🇱|🇵🇲|🇵🇳|🇵🇷|🇵🇸|🇵🇹|🇵🇼|🇵🇾|🇶🇦|🇷🇪|🇷🇴|🇷🇸|🇷🇺|🇷🇼|🇸🇦|🇸🇧|🇸🇨|🇸🇩|🇸🇪|🇸🇬|🇸🇭|🇸🇮|🇸🇯|🇸🇰|🇸🇱|🇸🇲|🇸🇳|🇸🇴|🇸🇷|🇸🇸|🇸🇹|🇸🇻|🇸🇽|🇸🇾|🇸🇿|🇹🇨|🇹🇩|🇹🇫|🇹🇬|🇹🇭|🇹🇯|🇹🇰|🇹🇱|🇹🇲|🇹🇳|🇹🇴|🇹🇷|🇹🇹|🇹🇻|🇹🇼|🇹🇿|🇺🇦|🇺🇬|🇺🇲|🇺🇸|🇺🇾|🇺🇿|🇻🇦|🇻🇨|🇻🇪|🇻🇬|🇻🇮|🇻🇳|🇻🇺|🇼🇫|🇼🇸|🇾🇪|🇾🇹|🇿🇦|🇿🇲|🇿🇼/g,
   
-  // 通用地区标识清理 - 但保留有用信息
-  'CLEAN_GENERIC': /[\u4e00-\u9fff]+(港|台|日|韩|新|美|英|德|法|澳|加|俄|土|印|泰|越|菲|马|阿|瑞|孟|捷|波)(?![a-zA-Z])/gi,
-  'CLEAN_BRACKETS': /[\(\[【][\u4e00-\u9fff\w\s\-\.]+[\)\]】]/gi,
-  'CLEAN_NODES': /(节点|代理|服务器|专线|中继|线路|机房|数据中心)/gi,
-  'CLEAN_NUMBERS': /\s*[\-\|]\s*\d+$/gi,
-  // 移除 CLEAN_EXTRA 规则，保留 优化、ChatGPT、IPLC、IEPL、BGP、三网 等有用信息
+  // 中文国家/地区名称清理
+  'CLEAN_CHINESE_REGIONS': /香港|港|台湾|台|日本|日|韩国|韩|新加坡|新|美国|美|英国|英|德国|德|法国|法|澳大利亚|澳洲|澳|加拿大|加|俄罗斯|俄|土耳其|土|印度|印|泰国|泰|越南|越|菲律宾|菲|马来西亚|马来|马|阿联酋|瑞士|瑞|孟加拉国|孟加拉|捷克|波黑|中国|荷兰|意大利|西班牙|葡萄牙|瑞典|挪威|丹麦|芬兰|波兰|乌克兰|白俄罗斯|立陶宛|拉脱维亚|爱沙尼亚|以色列|沙特阿拉伯|伊朗|伊拉克|埃及|南非|巴西|阿根廷|智利|墨西哥|哥伦比亚|委内瑞拉|秘鲁|新西兰|印尼|印度尼西亚|缅甸|柬埔寨|老挝|孟加拉|斯里兰卡|尼泊尔|巴基斯坦|阿富汗|乌兹别克斯坦|哈萨克斯坦|吉尔吉斯斯坦|塔吉克斯坦|土库曼斯坦|蒙古|朝鲜|文莱|东帝汶|巴布亚新几内亚|斐济|汤加|萨摩亚|瓦努阿图|所罗门群岛|密克罗尼西亚|帕劳|基里巴斯|图瓦卢|瑙鲁|马绍尔群岛|库克群岛|纽埃|托克劳/gi,
+  
+  // 英文国家/地区名称清理
+  'CLEAN_ENGLISH_REGIONS': /Hong\s?Kong|Hongkong|Taiwan|Taipei|Japan|Tokyo|Osaka|Korea|Seoul|Singapore|United\s?States|USA|Los\s?Angeles|San\s?Jose|Silicon\s?Valley|Michigan|Portland|Chicago|Columbus|New\s?York|Oregon|Seattle|United\s?Kingdom|London|Great\s?Britain|Germany|Frankfurt|France|Paris|Australia|Melbourne|Sydney|Canada|Russia|Moscow|Turkey|Istanbul|India|Mumbai|Indonesia|Jakarta|Thailand|Bangkok|Vietnam|Philippines|Malaysia|United\s?Arab\s?Emirates|Dubai|Switzerland|Zurich|Bangladesh|Czech|Bosnia|Netherlands|Amsterdam|Italy|Rome|Spain|Madrid|Portugal|Lisbon|Sweden|Stockholm|Norway|Oslo|Denmark|Copenhagen|Finland|Helsinki|Poland|Warsaw|Ukraine|Kiev|Belarus|Minsk|Lithuania|Vilnius|Latvia|Riga|Estonia|Tallinn|Israel|Tel\s?Aviv|Saudi\s?Arabia|Riyadh|Iran|Tehran|Iraq|Baghdad|Egypt|Cairo|South\s?Africa|Cape\s?Town|Brazil|Sao\s?Paulo|Argentina|Buenos\s?Aires|Chile|Santiago|Mexico|Mexico\s?City|Colombia|Bogota|Venezuela|Caracas|Peru|Lima|New\s?Zealand|Auckland|Myanmar|Cambodia|Laos|Sri\s?Lanka|Nepal|Pakistan|Afghanistan|Uzbekistan|Kazakhstan|Kyrgyzstan|Tajikistan|Turkmenistan|Mongolia|North\s?Korea|Brunei|East\s?Timor|Papua\s?New\s?Guinea|Fiji|Tonga|Samoa|Vanuatu|Solomon\s?Islands|Micronesia|Palau|Kiribati|Tuvalu|Nauru|Marshall\s?Islands|Cook\s?Islands|Niue|Tokelau/gi,
+  
+  // 城市名称清理
+  'CLEAN_CITIES': /东京|大坂|首尔|春川|狮城|波特兰|芝加哥|哥伦布|纽约|硅谷|俄勒冈|西雅图|伦敦|法兰克福|巴黎|墨尔本|悉尼|土澳|莫斯科|伊斯坦布尔|孟买|雅加达|曼谷|迪拜|苏黎世/gi
+};
+
+// 英文简称清理规则 (仅在启用时使用)
+const shortCodeCleanRules = {
+  'CLEAN_SHORT_CODES': /\b(AD|AE|AF|AG|AI|AL|AM|AO|AQ|AR|AS|AT|AU|AW|AX|AZ|BA|BB|BD|BE|BF|BG|BH|BI|BJ|BL|BM|BN|BO|BQ|BR|BS|BT|BV|BW|BY|BZ|CA|CC|CD|CF|CG|CH|CI|CK|CL|CM|CN|CO|CR|CU|CV|CW|CX|CY|CZ|DE|DJ|DK|DM|DO|DZ|EC|EE|EG|EH|ER|ES|ET|FI|FJ|FK|FM|FO|FR|GA|GB|GD|GE|GF|GG|GH|GI|GL|GM|GN|GP|GQ|GR|GS|GT|GU|GW|GY|HK|HM|HN|HR|HT|HU|ID|IE|IL|IM|IN|IO|IQ|IR|IS|IT|JE|JM|JO|JP|KE|KG|KH|KI|KM|KN|KP|KR|KW|KY|KZ|LA|LB|LC|LI|LK|LR|LS|LT|LU|LV|LY|MA|MC|MD|ME|MF|MG|MH|MK|ML|MM|MN|MO|MP|MQ|MR|MS|MT|MU|MV|MW|MX|MY|MZ|NA|NC|NE|NF|NG|NI|NL|NO|NP|NR|NU|NZ|OM|PA|PE|PF|PG|PH|PK|PL|PM|PN|PR|PS|PT|PW|PY|QA|RE|RO|RS|RU|RW|SA|SB|SC|SD|SE|SG|SH|SI|SJ|SK|SL|SM|SN|SO|SR|SS|ST|SV|SX|SY|SZ|TC|TD|TF|TG|TH|TJ|TK|TL|TM|TN|TO|TR|TT|TV|TW|TZ|UA|UG|UM|US|UY|UZ|VA|VC|VE|VG|VI|VN|VU|WF|WS|YE|YT|ZA|ZM|ZW)\b/gi
 };
 
 /**
@@ -195,28 +181,45 @@ function getCountryFlag(countryCode) {
 }
 
 /**
- * 清理节点名称中的地区标识
+ * 清理节点名称中的地区标识 - 仅专注于国别标识清理
  */
 function cleanRegionFromName(name) {
   let cleanName = name;
   
-  // 使用地区清理规则
-  Object.entries(regionCleanRules).forEach(([flag, regex]) => {
-    if (flag.startsWith('CLEAN_')) {
-      // 通用清理规则
-      cleanName = cleanName.replace(regex, '');
-    } else {
-      // 特定地区清理规则
-      cleanName = cleanName.replace(regex, '');
-    }
-  });
+  if (config.debug) {
+    console.log(`🧹 清理前: ${name}`);
+  }
   
-  // 清理多余的空格和特殊字符
+  // 1. 清理国旗emoji (最高优先级)
+  cleanName = cleanName.replace(regionCleanRules.CLEAN_FLAGS, '');
+  
+  // 2. 清理中文国家/地区名称
+  cleanName = cleanName.replace(regionCleanRules.CLEAN_CHINESE_REGIONS, '');
+  
+  // 3. 清理英文国家/地区名称
+  cleanName = cleanName.replace(regionCleanRules.CLEAN_ENGLISH_REGIONS, '');
+  
+  // 4. 清理城市名称
+  cleanName = cleanName.replace(regionCleanRules.CLEAN_CITIES, '');
+  
+  // 5. 可选：清理英文简称 (仅在启用时)
+  if (config.cleanShortCodes) {
+    cleanName = cleanName.replace(shortCodeCleanRules.CLEAN_SHORT_CODES, '');
+    if (config.debug) {
+      console.log(`🔤 清理英文简称后: ${cleanName}`);
+    }
+  }
+  
+  // 6. 清理多余的空格和特殊字符
   cleanName = cleanName
     .replace(/\s+/g, ' ')                    // 多个空格合并为一个
     .replace(/^[\s\-\|]+|[\s\-\|]+$/g, '')   // 清理首尾的空格、横线、竖线
     .replace(/^\d+[\.\-\s]*/, '')            // 清理开头的数字
     .trim();
+  
+  if (config.debug) {
+    console.log(`🧹 清理后: ${cleanName || 'Node'}`);
+  }
   
   return cleanName || 'Node';  // 如果清理后为空，返回默认名称
 }
