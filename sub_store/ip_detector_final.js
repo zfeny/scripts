@@ -2,21 +2,30 @@
  * Sub-Store IP地理位置检测脚本 - 最终版
  * 功能：通过API精准检测代理节点真实IP地理位置，清除原有地区标识，只保留API获取的国别flag
  * 作者：zfeny
- * 版本：6.0 Final
+ * 版本：6.2 Final
  * 更新：2025-08-08
  * 
  * 使用方法：
- * https://raw.githubusercontent.com/zfeny/scripts/refs/heads/main/sub_store/ip_detector_final.js#api=ipinfo&token=bd71953cf5a6f9&format=flag&cleanShortCodes=true&include=trojan&exclude=test
+ * https://raw.githubusercontent.com/zfeny/scripts/refs/heads/main/sub_store/ip_detector_final.js#api=ipinfo&token=bd71953cf5a6f9&format=flag&cleanShortCodes=true&include=trojan+专线&exclude=test+临时
  * 
  * 参数说明：
  * - api: API服务 (ip-api, ipinfo, ip2location)
  * - token: IPInfo API Token (仅ipinfo需要)
  * - format: 输出格式 (flag, text, both)
  * - cleanShortCodes: 是否清理英文简称如HK、TR等 (true/false)
- * - include: 包含条件，仅处理包含此值的节点名称 (为空时处理所有节点)
- * - exclude: 排除条件，排除包含此值的节点名称 (为空时不排除任何节点)
+ * - include: 包含条件，仅处理包含指定关键词的节点，多个关键词用+分隔 (为空时处理所有节点)
+ * - exclude: 排除条件，排除包含指定关键词的节点，多个关键词用+分隔 (为空时不排除任何节点)
  * - debug: 调试模式 (true/false)
  * - timeout: 超时时间毫秒 (默认10000)
+ * 
+ * 多关键词过滤示例：
+ * include=香港+新加坡  -> 只处理节点名包含"香港"或"新加坡"的节点
+ * exclude=测试+临时+备用 -> 排除节点名包含"测试"或"临时"或"备用"的节点
+ * include=IPLC+专线&exclude=测试 -> 只处理包含"IPLC"或"专线"但不包含"测试"的节点
+ * 
+ * 更新日志：
+ * v6.2 - 增强过滤功能：支持用+分隔多个关键词进行包含/排除过滤
+ * v6.1 - 修复清理规则过于宽泛导致意外删除字符的问题，移除单字匹配，改用完整国家名称匹配
  */
 
 // 配置参数解析
@@ -155,8 +164,8 @@ const regionCleanRules = {
   // 清理所有国家flag emoji (优先级最高)
   'CLEAN_FLAGS': /🇦🇩|🇦🇪|🇦🇫|🇦🇬|🇦🇮|🇦🇱|🇦🇲|🇦🇴|🇦🇶|🇦🇷|🇦🇸|🇦🇹|�🇺|🇦🇼|🇦🇽|🇦🇿|🇧🇦|🇧🇧|🇧🇩|🇧🇪|🇧🇫|🇧🇬|🇧🇭|🇧🇮|🇧🇯|🇧🇱|🇧🇲|🇧🇳|🇧🇴|🇧🇶|🇧🇷|🇧🇸|🇧�🇹|�🇻|🇧�🇼|🇧🇾|🇧🇿|🇨🇦|🇨🇨|🇨🇩|🇨🇫|�🇬|🇨🇭|🇨🇮|🇨🇰|🇨🇱|🇨🇲|🇨🇳|🇨🇴|🇨🇷|🇨🇺|🇨🇻|🇨🇼|🇨🇽|🇨🇾|🇨🇿|🇩🇪|🇩�🇯|�🇰|🇩🇲|🇩🇴|🇩🇿|🇪🇨|🇪🇪|🇪🇬|🇪🇭|🇪🇷|🇪🇸|🇪🇹|🇫🇮|🇫🇯|🇫🇰|🇫🇲|🇫🇴|🇫🇷|🇬🇦|🇬🇧|🇬🇩|🇬🇪|🇬🇫|🇬🇬|🇬🇭|🇬🇮|🇬🇱|🇬🇲|🇬🇳|🇬�🇵|🇬🇶|🇬🇷|🇬🇸|🇬🇹|🇬🇺|🇬🇼|🇬🇾|🇭🇰|🇭🇲|🇭🇳|🇭🇷|🇭🇹|🇭🇺|🇮🇩|🇮🇪|🇮🇱|🇮🇲|🇮🇳|🇮🇴|🇮🇶|🇮🇷|🇮🇸|🇮🇹|🇯🇪|🇯🇲|🇯🇴|🇯🇵|🇰🇪|🇰🇬|🇰🇭|🇰🇮|🇰🇲|🇰🇳|🇰🇵|🇰🇷|🇰🇼|🇰🇾|🇰🇿|🇱🇦|🇱🇧|🇱🇨|🇱🇮|🇱🇰|🇱🇷|🇱🇸|🇱🇹|🇱🇺|🇱🇻|🇱🇾|🇲🇦|🇲🇨|🇲🇩|🇲🇪|🇲🇫|🇲🇬|🇲🇭|🇲🇰|🇲🇱|🇲🇲|🇲🇳|🇲🇴|🇲🇵|🇲🇶|🇲🇷|🇲🇸|🇲🇹|🇲🇺|🇲🇻|🇲🇼|🇲🇽|🇲🇾|🇲🇿|🇳🇦|🇳🇨|🇳🇪|🇳🇫|🇳🇬|🇳🇮|🇳🇱|🇳🇴|🇳🇵|🇳🇷|🇳🇺|🇳🇿|🇴🇲|🇵🇦|🇵🇪|🇵🇫|🇵🇬|🇵🇭|🇵🇰|🇵🇱|🇵🇲|🇵🇳|🇵🇷|🇵🇸|🇵🇹|🇵🇼|🇵🇾|🇶🇦|🇷🇪|🇷🇴|🇷🇸|🇷🇺|🇷🇼|🇸🇦|🇸🇧|🇸🇨|🇸🇩|🇸🇪|🇸🇬|🇸🇭|🇸🇮|🇸🇯|🇸🇰|🇸🇱|🇸🇲|🇸🇳|🇸🇴|🇸🇷|🇸🇸|🇸🇹|🇸🇻|🇸🇽|🇸🇾|🇸🇿|🇹🇨|🇹🇩|🇹🇫|🇹🇬|🇹🇭|🇹🇯|🇹🇰|🇹🇱|🇹🇲|🇹🇳|🇹🇴|🇹🇷|🇹🇹|🇹🇻|🇹🇼|🇹🇿|🇺🇦|🇺🇬|🇺🇲|🇺🇸|🇺🇾|🇺🇿|🇻🇦|🇻🇨|🇻🇪|🇻🇬|🇻🇮|🇻🇳|🇻🇺|🇼🇫|🇼🇸|🇾🇪|🇾🇹|🇿🇦|🇿🇲|🇿🇼/g,
   
-  // 中文国家/地区名称清理
-  'CLEAN_CHINESE_REGIONS': /香港|港|台湾|台|日本|日|韩国|韩|新加坡|新|美国|美|英国|英|德国|德|法国|法|澳大利亚|澳洲|澳|加拿大|加|俄罗斯|俄|土耳其|土|印度|印|泰国|泰|越南|越|菲律宾|菲|马来西亚|马来|马|阿联酋|瑞士|瑞|孟加拉国|孟加拉|捷克|波黑|中国|荷兰|意大利|西班牙|葡萄牙|瑞典|挪威|丹麦|芬兰|波兰|乌克兰|白俄罗斯|立陶宛|拉脱维亚|爱沙尼亚|以色列|沙特阿拉伯|伊朗|伊拉克|埃及|南非|巴西|阿根廷|智利|墨西哥|哥伦比亚|委内瑞拉|秘鲁|新西兰|印尼|印度尼西亚|缅甸|柬埔寨|老挝|孟加拉|斯里兰卡|尼泊尔|巴基斯坦|阿富汗|乌兹别克斯坦|哈萨克斯坦|吉尔吉斯斯坦|塔吉克斯坦|土库曼斯坦|蒙古|朝鲜|文莱|东帝汶|巴布亚新几内亚|斐济|汤加|萨摩亚|瓦努阿图|所罗门群岛|密克罗尼西亚|帕劳|基里巴斯|图瓦卢|瑙鲁|马绍尔群岛|库克群岛|纽埃|托克劳/gi,
+  // 中文国家/地区名称清理 - 使用更精确的匹配
+  'CLEAN_CHINESE_REGIONS': /香港|台湾|日本|韩国|新加坡|美国|英国|德国|法国|澳大利亚|澳洲|加拿大|俄罗斯|土耳其|印度|泰国|越南|菲律宾|马来西亚|阿联酋|瑞士|孟加拉国|孟加拉|捷克|波黑|中国|荷兰|意大利|西班牙|葡萄牙|瑞典|挪威|丹麦|芬兰|波兰|乌克兰|白俄罗斯|立陶宛|拉脱维亚|爱沙尼亚|以色列|沙特阿拉伯|伊朗|伊拉克|埃及|南非|巴西|阿根廷|智利|墨西哥|哥伦比亚|委内瑞拉|秘鲁|新西兰|印尼|印度尼西亚|缅甸|柬埔寨|老挝|斯里兰卡|尼泊尔|巴基斯坦|阿富汗|乌兹别克斯坦|哈萨克斯坦|吉尔吉斯斯坦|塔吉克斯坦|土库曼斯坦|蒙古|朝鲜|文莱|东帝汶|巴布亚新几内亚|斐济|汤加|萨摩亚|瓦努阿图|所罗门群岛|密克罗尼西亚|帕劳|基里巴斯|图瓦卢|瑙鲁|马绍尔群岛|库克群岛|纽埃|托克劳/gi,
   
   // 英文国家/地区名称清理
   'CLEAN_ENGLISH_REGIONS': /Hong\s?Kong|Hongkong|Taiwan|Taipei|Japan|Tokyo|Osaka|Korea|Seoul|Singapore|United\s?States|USA|Los\s?Angeles|San\s?Jose|Silicon\s?Valley|Michigan|Portland|Chicago|Columbus|New\s?York|Oregon|Seattle|United\s?Kingdom|London|Great\s?Britain|Germany|Frankfurt|France|Paris|Australia|Melbourne|Sydney|Canada|Russia|Moscow|Turkey|Istanbul|India|Mumbai|Indonesia|Jakarta|Thailand|Bangkok|Vietnam|Philippines|Malaysia|United\s?Arab\s?Emirates|Dubai|Switzerland|Zurich|Bangladesh|Czech|Bosnia|Netherlands|Amsterdam|Italy|Rome|Spain|Madrid|Portugal|Lisbon|Sweden|Stockholm|Norway|Oslo|Denmark|Copenhagen|Finland|Helsinki|Poland|Warsaw|Ukraine|Kiev|Belarus|Minsk|Lithuania|Vilnius|Latvia|Riga|Estonia|Tallinn|Israel|Tel\s?Aviv|Saudi\s?Arabia|Riyadh|Iran|Tehran|Iraq|Baghdad|Egypt|Cairo|South\s?Africa|Cape\s?Town|Brazil|Sao\s?Paulo|Argentina|Buenos\s?Aires|Chile|Santiago|Mexico|Mexico\s?City|Colombia|Bogota|Venezuela|Caracas|Peru|Lima|New\s?Zealand|Auckland|Myanmar|Cambodia|Laos|Sri\s?Lanka|Nepal|Pakistan|Afghanistan|Uzbekistan|Kazakhstan|Kyrgyzstan|Tajikistan|Turkmenistan|Mongolia|North\s?Korea|Brunei|East\s?Timor|Papua\s?New\s?Guinea|Fiji|Tonga|Samoa|Vanuatu|Solomon\s?Islands|Micronesia|Palau|Kiribati|Tuvalu|Nauru|Marshall\s?Islands|Cook\s?Islands|Niue|Tokelau/gi,
@@ -419,21 +428,29 @@ function operator(proxies) {
       
       const name = proxy.name.toLowerCase();
       
-      // 如果设置了 include，必须包含该关键词
-      const includeMatch = !config.include || name.includes(config.include.toLowerCase());
+      // 处理包含条件 (include) - 支持多关键词
+      let includeMatch = true;
+      if (config.include) {
+        const includeKeywords = config.include.split('+').map(k => k.toLowerCase().trim());
+        includeMatch = includeKeywords.some(keyword => name.includes(keyword));
+      }
       
-      // 如果设置了 exclude，不能包含该关键词
-      const excludeMatch = !config.exclude || !name.includes(config.exclude.toLowerCase());
+      // 处理排除条件 (exclude) - 支持多关键词
+      let excludeMatch = true;
+      if (config.exclude) {
+        const excludeKeywords = config.exclude.split('+').map(k => k.toLowerCase().trim());
+        excludeMatch = !excludeKeywords.some(keyword => name.includes(keyword));
+      }
       
       return includeMatch && excludeMatch;
     });
     
     let filterInfo = '';
-    if (config.include) filterInfo += `包含 "${config.include}"`;
+    if (config.include) filterInfo += `包含关键词: ${config.include.replace(/\+/g, ' 或 ')}`;
     if (config.include && config.exclude) filterInfo += ' 且 ';
-    if (config.exclude) filterInfo += `排除 "${config.exclude}"`;
+    if (config.exclude) filterInfo += `排除关键词: ${config.exclude.replace(/\+/g, ' 或 ')}`;
     
-    console.log(`📋 过滤条件: ${filterInfo} - 匹配到 ${filteredProxies.length} 个节点`);
+    console.log(`📋 多关键词过滤: ${filterInfo} - 匹配到 ${filteredProxies.length} 个节点`);
   }
   
   let processedCount = 0;
@@ -447,11 +464,19 @@ function operator(proxies) {
     if (proxy.name) {
       const name = proxy.name.toLowerCase();
       
-      // 如果设置了 include，必须包含该关键词
-      const includeMatch = !config.include || name.includes(config.include.toLowerCase());
+      // 处理包含条件 (include) - 支持多关键词
+      let includeMatch = true;
+      if (config.include) {
+        const includeKeywords = config.include.split('+').map(k => k.toLowerCase().trim());
+        includeMatch = includeKeywords.some(keyword => name.includes(keyword));
+      }
       
-      // 如果设置了 exclude，不能包含该关键词
-      const excludeMatch = !config.exclude || !name.includes(config.exclude.toLowerCase());
+      // 处理排除条件 (exclude) - 支持多关键词
+      let excludeMatch = true;
+      if (config.exclude) {
+        const excludeKeywords = config.exclude.split('+').map(k => k.toLowerCase().trim());
+        excludeMatch = !excludeKeywords.some(keyword => name.includes(keyword));
+      }
       
       shouldProcess = includeMatch && excludeMatch;
     } else {
