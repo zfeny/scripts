@@ -6,13 +6,14 @@
  * 更新：2025-08-08
  * 
  * 使用方法：
- * https://raw.githubusercontent.com/zfeny/scripts/refs/heads/main/sub_store/ip_detector_final.js#api=ipinfo&token=bd71953cf5a6f9&format=flag&cleanShortCodes=true
+ * https://raw.githubusercontent.com/zfeny/scripts/refs/heads/main/sub_store/ip_detector_final.js#api=ipinfo&token=bd71953cf5a6f9&format=flag&cleanShortCodes=true&filter=trojan
  * 
  * 参数说明：
  * - api: API服务 (ip-api, ipinfo, ip2location)
  * - token: IPInfo API Token (仅ipinfo需要)
  * - format: 输出格式 (flag, text, both)
  * - cleanShortCodes: 是否清理英文简称如HK、TR等 (true/false)
+ * - filter: 过滤条件，仅处理包含此值的节点名称 (为空时处理所有节点)
  * - debug: 调试模式 (true/false)
  * - timeout: 超时时间毫秒 (默认10000)
  */
@@ -24,6 +25,7 @@ const config = {
   token: scriptArgs.token || '',
   format: scriptArgs.format || 'flag',
   cleanShortCodes: scriptArgs.cleanShortCodes === 'true' || scriptArgs.cleanShortCodes === true || false,
+  filter: scriptArgs.filter || '',
   debug: scriptArgs.debug === 'true' || scriptArgs.debug === true,
   timeout: parseInt(scriptArgs.timeout) || 10000
 };
@@ -407,10 +409,32 @@ function generateNewNodeName(cleanedName, locationInfo, originalName) {
 function operator(proxies) {
   console.log(`🚀 开始处理 ${proxies.length} 个节点，使用API: ${config.api}`);
   
+  // 应用过滤条件
+  let filteredProxies = proxies;
+  if (config.filter) {
+    filteredProxies = proxies.filter(proxy => 
+      proxy.name && proxy.name.toLowerCase().includes(config.filter.toLowerCase())
+    );
+    console.log(`📋 过滤条件: "${config.filter}" - 匹配到 ${filteredProxies.length} 个节点`);
+  }
+  
   let processedCount = 0;
   let successCount = 0;
+  let skippedCount = 0;
   
   const results = proxies.map((proxy, index) => {
+    // 检查是否需要处理此节点
+    const shouldProcess = !config.filter || 
+      (proxy.name && proxy.name.toLowerCase().includes(config.filter.toLowerCase()));
+    
+    if (!shouldProcess) {
+      skippedCount++;
+      if (config.debug) {
+        console.log(`⏭️ 跳过节点 ${index + 1}/${proxies.length}: ${proxy.name} (不匹配过滤条件)`);
+      }
+      return proxy; // 返回原始节点，不做任何修改
+    }
+    
     processedCount++;
     
     if (config.debug) {
@@ -459,7 +483,7 @@ function operator(proxies) {
     return newProxy;
   });
   
-  console.log(`\n🎉 处理完成: ${successCount}/${processedCount} 个节点成功更新`);
+  console.log(`\n🎉 处理完成: ${successCount}/${processedCount} 个节点成功更新${skippedCount > 0 ? `, ${skippedCount} 个节点已跳过` : ''}`);
   
   return results;
 }
