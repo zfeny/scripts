@@ -358,7 +358,7 @@ function queryIPLocationSync(ip) {
     }
     
     if (config.debug) {
-      console.log(`✅ IP ${ip} 位置: ${locationInfo.country} (${locationInfo.countryCode})`);
+      console.log(`IP ${ip} 位置: ${locationInfo.country} (${locationInfo.countryCode})`);
     }
     
     return locationInfo;
@@ -445,7 +445,7 @@ function operator(proxies) {
     }
     
     successCount++;
-    console.log(`✅ ${proxy.name} → ${newName}`);
+    console.log(`${proxy.name} → ${newName}`);
     
     return newProxy;
   });
