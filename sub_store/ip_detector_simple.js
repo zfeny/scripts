@@ -13,19 +13,20 @@
  * script.js#api=ip-api&format=flag&timeout=5000&prefix=✅
  * 
  * 作者: Assistant
- * 版本: 4.0 (纯API版本)
+ * 版本: 4.1 (Sub-Store远程兼容版本)
  */
 
-const inArg = $arguments || {};
+// 避免变量冲突，使用不同的变量名
+const scriptArgs = typeof $arguments !== 'undefined' ? $arguments : {};
 
 // 配置参数
 const config = {
-  api: inArg.api || 'ip-api',
-  format: inArg.format || 'flag',
-  timeout: parseInt(inArg.timeout) || 5000,
-  prefix: inArg.prefix || '✅',
-  fallback: inArg.fallback !== 'false',
-  retries: parseInt(inArg.retries) || 2
+  api: scriptArgs.api || 'ip-api',
+  format: scriptArgs.format || 'flag',
+  timeout: parseInt(scriptArgs.timeout) || 5000,
+  prefix: scriptArgs.prefix || '✅',
+  fallback: scriptArgs.fallback !== 'false',
+  retries: parseInt(scriptArgs.retries) || 2
 };
 
 // 免费IP查询API配置
@@ -162,7 +163,7 @@ function extractIPFromProxy(proxy) {
 }
 
 /**
- * 通过IP查询API获取真实地理位置信息（Sub-Store Docker兼容版本）
+ * 通过IP查询API获取真实地理位置信息（Sub-Store远程脚本版本）
  * @param {string} ip IP地址
  * @returns {Object|null} 地理位置信息
  */
@@ -186,73 +187,129 @@ function queryIPLocationSync(ip) {
     }
     
     let data;
+    let requestSuccess = false;
     
-    // 尝试使用$httpClient (Surge/Loon环境)
-    if (typeof $httpClient !== 'undefined') {
-      console.log(`🔧 使用$httpClient进行请求`);
-      const result = $httpClient.get({
-        url: url,
-        headers: {
-          'User-Agent': 'Sub-Store-IP-Detector/4.0'
-        },
-        timeout: config.timeout / 1000
-      });
-      
-      if (result && result.body) {
-        data = JSON.parse(result.body);
-      } else {
-        throw new Error('$httpClient请求失败');
-      }
-    }
-    // 尝试使用$task.fetch (Quantumult X环境)
-    else if (typeof $task !== 'undefined' && $task.fetch) {
-      console.log(`🔧 使用$task.fetch进行请求`);
-      const result = $task.fetch({
-        url: url,
-        method: 'GET',
-        headers: {
-          'User-Agent': 'Sub-Store-IP-Detector/4.0'
-        },
-        timeout: config.timeout
-      });
-      
-      if (result && result.body) {
-        data = JSON.parse(result.body);
-      } else {
-        throw new Error('$task.fetch请求失败');
-      }
-    }
-    // 尝试使用child_process执行curl命令 (Docker/Linux环境)
-    else if (typeof require !== 'undefined') {
-      try {
-        console.log(`🔧 使用curl命令进行请求`);
-        const { execSync } = require('child_process');
-        
-        // 构建curl命令
-        const curlCmd = `curl -s -H "User-Agent: Sub-Store-IP-Detector/4.0" --connect-timeout ${Math.ceil(config.timeout/1000)} "${url}"`;
-        console.log(`执行命令: ${curlCmd}`);
-        
-        // 执行curl命令并获取结果
-        const result = execSync(curlCmd, { 
-          encoding: 'utf8',
-          timeout: config.timeout,
-          maxBuffer: 1024 * 1024 // 1MB buffer
+    // 尝试Sub-Store环境的HTTP方法
+    try {
+      // 方法1: 尝试使用$httpClient (Surge/Loon环境)
+      if (typeof $httpClient !== 'undefined') {
+        console.log(`🔧 使用$httpClient进行请求`);
+        const result = $httpClient.get({
+          url: url,
+          headers: {
+            'User-Agent': 'Sub-Store-IP-Detector/4.1'
+          },
+          timeout: config.timeout / 1000
         });
         
-        if (result && result.trim()) {
-          data = JSON.parse(result.trim());
-          console.log(`🌐 curl请求成功，获取到数据`);
-        } else {
-          throw new Error('curl命令返回空结果');
+        if (result && result.body) {
+          data = JSON.parse(result.body);
+          requestSuccess = true;
         }
-      } catch (curlError) {
-        console.error(`❌ curl请求失败: ${curlError.message}`);
-        throw new Error(`curl命令执行失败: ${curlError.message}`);
       }
+      
+      // 方法2: 尝试使用$task.fetch (Quantumult X环境)
+      if (!requestSuccess && typeof $task !== 'undefined' && $task.fetch) {
+        console.log(`🔧 使用$task.fetch进行请求`);
+        const result = $task.fetch({
+          url: url,
+          method: 'GET',
+          headers: {
+            'User-Agent': 'Sub-Store-IP-Detector/4.1'
+          },
+          timeout: config.timeout
+        });
+        
+        if (result && result.body) {
+          data = JSON.parse(result.body);
+          requestSuccess = true;
+        }
+      }
+      
+      // 方法3: 尝试使用原生Node.js方法 (Docker环境)
+      if (!requestSuccess && typeof require === 'function') {
+        console.log(`🔧 使用Node.js请求方法`);
+        
+        try {
+          // 尝试使用child_process执行curl
+          const { execSync } = require('child_process');
+          const curlCmd = `curl -s -H "User-Agent: Sub-Store-IP-Detector/4.1" --connect-timeout ${Math.ceil(config.timeout/1000)} "${url}"`;
+          
+          const result = execSync(curlCmd, { 
+            encoding: 'utf8',
+            timeout: config.timeout,
+            maxBuffer: 1024 * 1024
+          });
+          
+          if (result && result.trim()) {
+            data = JSON.parse(result.trim());
+            requestSuccess = true;
+            console.log(`🌐 curl请求成功`);
+          }
+        } catch (curlError) {
+          console.log(`curl失败，尝试Node.js http模块: ${curlError.message}`);
+          
+          // 如果curl失败，尝试Node.js http/https模块
+          const https = require('https');
+          const http = require('http');
+          const urlObj = new URL(url);
+          const client = urlObj.protocol === 'https:' ? https : http;
+          
+          return new Promise((resolve) => {
+            const req = client.get({
+              hostname: urlObj.hostname,
+              port: urlObj.port,
+              path: urlObj.pathname + urlObj.search,
+              headers: {
+                'User-Agent': 'Sub-Store-IP-Detector/4.1'
+              },
+              timeout: config.timeout
+            }, (res) => {
+              let responseData = '';
+              res.on('data', (chunk) => {
+                responseData += chunk;
+              });
+              res.on('end', () => {
+                try {
+                  const parsedData = JSON.parse(responseData);
+                  resolve(parsedData);
+                } catch (parseError) {
+                  console.error(`JSON解析失败: ${parseError.message}`);
+                  resolve(null);
+                }
+              });
+            });
+            
+            req.on('error', (error) => {
+              console.error(`HTTP请求错误: ${error.message}`);
+              resolve(null);
+            });
+            
+            req.on('timeout', () => {
+              console.error('HTTP请求超时');
+              req.destroy();
+              resolve(null);
+            });
+            
+            req.end();
+          }).then(result => {
+            if (result) {
+              data = result;
+              requestSuccess = true;
+              console.log(`🌐 Node.js http请求成功`);
+            }
+            return result;
+          });
+        }
+      }
+      
+    } catch (requestError) {
+      console.error(`HTTP请求失败: ${requestError.message}`);
     }
-    // 如果都不可用，报告错误
-    else {
-      throw new Error('当前环境不支持HTTP请求（无$httpClient、$task.fetch或curl命令）');
+    
+    // 如果所有方法都失败
+    if (!requestSuccess || !data) {
+      throw new Error('所有HTTP请求方法都失败，可能是网络问题或API服务不可用');
     }
     
     // 检查API响应状态
@@ -446,6 +503,6 @@ function showConfig() {
 }
 
 // 调试模式
-if (inArg.debug || inArg.help) {
+if (scriptArgs.debug || scriptArgs.help) {
   showConfig();
 }
