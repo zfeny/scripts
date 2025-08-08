@@ -177,7 +177,7 @@ proxy-groups:
   - name: '🏠国外家宽'
     type: select
     include-all: true
-    filter: Fam
+    filter: Fam|7li7li
     exclude-filter: 香港|HK|🇭🇰
 
   - name: '📉下载专用'
