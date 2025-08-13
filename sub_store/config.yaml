@@ -1,107 +1,151 @@
 # ---------------------------------------------------
-# 基础代理设置 (Core Proxy Settings)
-# 重启命令 systemctl restart mihomo
+# Mihomo 配置文件 - 基于原有配置优化整合
+# 创建日期: 2025-08-13
+# 重启命令: systemctl restart mihomo
 # ---------------------------------------------------
+
+# **=============================== 基础代理设置 ===============================**
 mixed-port: 7890              # 混合代理端口 (同时支持HTTP和SOCKS5)
-socks-port: 7891              # 专用SOCKS5代理端口 (已注释，因为mixed-port已包含)
-port: 7892                    # 专用HTTP代理端口 (已注释，因为mixed-port已包含)
-redir-port: 0                 # 重定向端口
-tproxy-port: 0                # TPROXY端口
-allow-lan: true               # [已修正] 允许局域网连接。设为true以匹配bind-address:"*"并允许Docker等访问
+socks-port: 7891              # 专用SOCKS5代理端口
+port: 7892                    # 专用HTTP代理端口
+redir-port: 7893              # 重定向端口
+tproxy-port: 7894             # TPROXY端口
+allow-lan: true               # 允许局域网连接
 bind-address: "*"             # 监听地址, "*" 表示监听所有网络接口
 mode: rule                    # 代理模式: rule(规则), global(全局), direct(直连)
-log-level: info               # [优化] 日志级别: 调整为 info, 可减少不必要的日志刷屏。需要排错时再改为 debug
+log-level: info               # 日志级别
 ipv6: true                    # 开启IPv6支持
 
-# ---------------------------------------------------
-# 网络与连接设置 (Network & Connection Settings)
-# ---------------------------------------------------
+# **=============================== 网络与连接设置 ===============================**
 unified-delay: true           # 统一显示节点延迟
 tcp-concurrent: true          # 并发TCP连接，可加速网页加载
 find-process-mode: strict     # 进程匹配模式: strict(严格), always(总是)
-global-client-fingerprint: chrome # 全局客户端指纹: chrome(Chrome浏览器), firefox(Firefox浏览器), safari(Safari浏览器)
+global-client-fingerprint: chrome # 全局客户端指纹
 authentication: []            # 认证设置 (留空表示无需密码)
-skip-auth-prefixes:           # 跳过认证的IP段 (例如本机和Docker网段)
+skip-auth-prefixes:           # 跳过认证的IP段
   - 127.0.0.1/32
 lan-allowed-ips:              # 允许局域网访问的IP段
   - 0.0.0.0/0
   - ::/0
-lan-disallowed-ips: []        # 不允许局域网访问的IP段 (留空表示不限制)
+lan-disallowed-ips: []        # 不允许局域网访问的IP段
 
-# ---------------------------------------------------
-# 性能调优 (Performance Tuning)
-# ---------------------------------------------------
-keep-alive-idle: 600          # TCP保活空闲时间(秒), 防止连接被NAT中断
-keep-alive-interval: 30       # TCP保活心跳间隔(秒), 防止连接被NAT中断
-inbound-tfo: true             # 入站TCP Fast Open, 加速重复连接
-outbound-tfo: true            # 出站TCP Fast Open, 加速重复连接
+# **=============================== 性能调优 ===============================**
+keep-alive-idle: 600          # TCP保活空闲时间(秒)
+keep-alive-interval: 30       # TCP保活心跳间隔(秒)
+inbound-tfo: true             # 入站TCP Fast Open
+outbound-tfo: true            # 出站TCP Fast Open
+disable-keep-alive: false
 
-# ---------------------------------------------------
-# TUN 模式 (TUN Mode) - 接管系统所有网络流量
-# ---------------------------------------------------
+# **=============================== 控制面板 ===============================**
+# external-controller: 127.0.0.1:9090
+# secret: "123465."
+# external-ui: "./ui"
+# external-ui-url: "https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip"
+
+# **=============================== TUN 模式 ===============================**
 tun:
   enable: true                # 启用TUN模式
   device: Mihomo              # 虚拟网卡名称
-  stack: system               # 网络协议栈: system(兼容性好), gvisor
+  stack: system               # 网络协议栈: system/gvisor/mixed
   auto-route: true            # 自动设置路由表
-  auto-redirect: true         # 自动重定向流量到TUN接口 (false表示不自动重定向)
+  auto-redirect: true         # 自动重定向流量到TUN接口
   auto-detect-interface: true # 自动检测出口网络接口
-  dns-hijack:                 # DNS劫持, 将所有53端口的DNS请求交给Mihomo处理
-    - "any:53"                # 劫持所有DNS请求
-    - "tcp://any:53"          # 劫持TCP DNS请求
+  dns-hijack:                 # DNS劫持
+    - any:53
+    - tcp://any:53
   strict-route: true          # 严格路由模式
-  route-exclude-address: []   # 路由排除地址 (不走TUN的IP段)
-  mtu: 1500                   # MTU设置 (1500是常用值)
+  route-exclude-address: []   # 路由排除地址
+  mtu: 1500                   # MTU设置
+  gso: true                   # 启用通用分段卸载
+  gso-max-size: 65536
+  udp-timeout: 300            # UDP 会话保持时间
 
-# ---------------------------------------------------
-# DNS 设置 (DNS Settings)
-# ---------------------------------------------------
+# **=============================== DNS 设置 ===============================**
 dns:
   enable: true                # 启用内置DNS服务器
   ipv6: true                  # DNS查询也走IPv6
+  listen: 0.0.0.0:1053        # 监听地址和端口
+  prefer-h3: false            # 如果DNS服务器支持DoH3会优先使用h3
+  respect-rules: true         # 让 DNS 解析遵循 Clash 的路由规则
+  cache-algorithm: arc        # 使用性能更优的 ARC 缓存算法
+  cache-size: 2048            # 限制缓存大小
   enhanced-mode: fake-ip      # 增强模式: fake-ip(高效), redir-host
-  fake-ip-range: 28.0.0.1/8   # Fake-IP地址池范围
-  # 黑名单模式表示如果匹配成功则不返回 Fake-IP, 白名单模式时只有匹配成功才返回 Fake-IP
+  fake-ip-range: 198.18.0.1/16 # fake-ip 地址范围
   fake-ip-filter-mode: blacklist
   fake-ip-filter:
+    - "rule-set:private_domain,cn_domain"
+    - "geosite:connectivity-check"
+    - "geosite:private"
+    - "rule-set:fake_ip_filter_DustinWin"
     - "+.lan"
     - "+.local"
-    - geosite:private
-    - geosite:cn
-  use-hosts: true             # 使用自定义Hosts文件
-  nameserver:                 # 上游DNS服务器 (用于解析国外域名)
-    - https://8.8.8.8/dns-query
-    - https://1.1.1.1/dns-query
-  proxy-server-nameserver:    # 用于解析代理服务器域名的DNS
-    - quic://223.5.5.5
-  direct-nameserver:          # 直连域名使用的DNS (国内)
-    - quic://223.5.5.5
-    - tls://1.12.12.12
+  use-hosts: false            # 使用hosts
+  use-system-hosts: false     # 使用系统hosts
+  
   default-nameserver:
-    - quic://223.5.5.5
-    - tls://1.12.12.12
-  nameserver-policy:          # DNS分流策略 (国内域名走国内DNS)
-    "geosite:cn": 223.5.5.5
+    - 1.1.1.1                 # Cloudflare Public DNS (UDP)
+    - 8.8.8.8                 # Google Public DNS (UDP)
+
+  nameserver:                 # 默认 DNS，供所有请求使用
+    - https://1.1.1.1/dns-query    # Cloudflare（支持 H3）
+    - https://dns.google/dns-query # Google（支持 H3）
+    - 1.1.1.1                      # Cloudflare Public DNS (UDP)
+    - 8.8.8.8                      # Google Public DNS (UDP)
+
+  nameserver-policy:
+    "geosite:cn,private":           # 国内域名和私有域名强制走国内 DNS
+      - https://223.5.5.5/dns-query # 阿里
+      - https://doh.pub/dns-query   # 腾讯
+      - 223.5.5.5                   # 阿里 UDP
+      - 119.29.29.29                # 腾讯 UDP
+    "geo:cn":                       # 也可以用 geo:cn 匹配 IP
+      - https://223.5.5.5/dns-query
+      - https://doh.pub/dns-query
+      - 223.5.5.5                   # 阿里 UDP
+      - 119.29.29.29                # 腾讯 UDP
+    "geosite:gfw":                  # GFW 列表域名强制走国外 DNS
+      - https://1.1.1.1/dns-query
+      - https://dns.google/dns-query
+      - 1.1.1.1
+      - 8.8.8.8
+    "geosite:geolocation-!cn":      # 非中国大陆域名强制走国外 DNS
+      - https://1.1.1.1/dns-query
+      - https://dns.google/dns-query
+      - 1.1.1.1
+      - 8.8.8.8
     "rule-set:private_domain,cn_domain": 223.5.5.5
     "rule-set:geolocation-!cn":
-      - "https://8.8.8.8/dns-query"
       - "https://1.1.1.1/dns-query"
-  respect-rules: true         # 规则中的域名是否也遵循DNS分流策略
+      - "https://dns.google/dns-query"
 
-# ---------------------------------------------------
-# 流量嗅探 (Sniffer Settings) - 在TUN模式下会自动关闭，此为正常现象
-# ---------------------------------------------------
+  fallback:
+    - 1.1.1.1                       # Cloudflare DNS备用
+    - 8.8.8.8                       # Google DNS备用
+
+  proxy-server-nameserver:          # 当请求通过代理时使用
+    - https://1.1.1.1/dns-query     # Cloudflare，DoH3
+    - https://dns.google/dns-query  # Google，DoH3
+    - 1.1.1.1
+    - 8.8.8.8
+
+# **=============================== 流量嗅探配置 ===============================**
 sniffer:
   enable: true                # 启用流量嗅探
   parse-pure-ip: true         # 解析纯IP流量
-  force-dns-mapping: true     # 强制DNS映射 (将域名解析到IP)
-  override-destination: true  # 覆盖目标地址 (将域名解析到Fake-IP地址)
+  force-dns-mapping: true     # 强制DNS映射
+  override-destination: true  # 覆盖目标地址
   sniff:                      # 需要进行嗅探的协议和端口
-    HTTP: { ports: [80, "443", "8080-8880"], override-destination: true }
-    TLS: { ports: [443, 8443] }
-    QUIC: { ports: [443, 8443] }
+    HTTP: 
+      ports: [80, 8080-8880]
+      override-destination: true
+    TLS: 
+      ports: [443, 8443]
+    QUIC: 
+      ports: [443, 8443]
   skip-domain:                # 跳过嗅探的域名
-    - +.push.apple.com
+    - "+.push.apple.com"
+    - "+.baidu.com"
+    - "+.bilibili.com"
   skip-dst-address:           # 跳过嗅探的目标IP段
     - 91.105.192.0/23
     - 91.108.4.0/22
@@ -115,39 +159,58 @@ sniffer:
     - 2001:b28:f23c::/47
     - 2001:b28:f23f::/48
     - 2a0a:f280:203::/48
-  force-domain: []            # 强制嗅探的域名 (即使在skip-domain中也会嗅探)
+  force-domain:
+    - "+.v2ex.com"
 
-# ---------------------------------------------------
-# 规则数据与配置管理 (Rule Data & Profile)
-# ---------------------------------------------------
+# **=============================== 规则数据与配置管理 ===============================**
 profile:
   store-selected: true        # 保存上次选择的节点
   store-fake-ip: true         # 为Fake-IP模式下的连接保留真实IP
+
 geo-auto-update: true         # 自动更新GeoIP和Geosite数据库
 geo-update-interval: 48       # 数据库更新间隔 (小时)
-geodata-mode: false           # 是否启用地理数据模式 (false表示使用内置的GeoIP和Geosite)
+geodata-mode: true            # 启用地理数据模式
+geodata-loader: memconservative # GEO 数据库加载模式
+
 geox-url:                     # GeoX数据库下载地址
-  geoip: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip-lite.dat"
+  geoip: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat"
   geosite: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat"
   mmdb: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.metadb"
-  asn: "https://github.com/xishang0128/geoip/releases/download/latest/GeoLite2-ASN.mmdb"
 
-#================================================================
-# 代理节点, 策略组, 规则 (Proxies, Groups, Rules)
-#================================================================
+# **=============================== 代理配置锚点 ===============================**
+dy: &dy
+  type: http
+  udp: true
+  interval: 86400
+  proxy: DIRECTLY
+  lazy: true
+  health-check:
+    enable: true
+    url: https://cp.cloudflare.com/generate_204
+    interval: 600
+    timeout: 5
+    lazy: true
+    expected-status: "204"
+    method: HEAD
+
+# **=============================== 代理提供者 ===============================**
+# proxy-providers:
+#   # 您可以根据实际情况配置机场订阅
+#   # p1:
+#   #   url: ""
+#   #   path: ./proxy_provider/p1.yaml
+#   #   <<: *dy
+#   #   override:
+#   #     additional-prefix: "p1 »"
+
+# **=============================== 代理节点 ===============================**
 +proxies:
   - name: "🟢本地直连"
     type: direct
     udp: true
- 
-# 策略组
-proxy-groups:
-  # 节点信息
-  - name: "🪜机场信息"
-    type: select
-    include-all: true
-    filter: ℹ️
 
+# **=============================== 策略组 ===============================**
+proxy-groups:
   # 主策略组
   - name: '🚀节点选择'
     type: select
@@ -158,6 +221,7 @@ proxy-groups:
       - '🏠国外家宽'
       - '📉下载专用'
       - '🟢本地直连'
+    icon: "https://raw.githubusercontent.com/Mithcell-Ma/icon/refs/heads/main/Manual_Test_Log.png"
 
   # 核心策略组
   - name: '🍵日常低倍'
@@ -168,6 +232,8 @@ proxy-groups:
     tolerance: 50
     filter: 7li7li
     exclude-filter: \s(\d{2,}|[4-9])(\.\d+)?\s?[xX×]|萌云
+    # proxies:
+    #   - '🟢本地直连'
 
   - name: '🌍地区选择'
     type: select
@@ -188,6 +254,8 @@ proxy-groups:
     url: 'https://www.gstatic.com/generate_204'
     interval: 600
     tolerance: 50
+    # proxies:
+    #   - '🟢本地直连'
 
   - name: '📉下载专用'
     type: url-test
@@ -195,9 +263,10 @@ proxy-groups:
     url: 'https://www.gstatic.com/generate_204'
     interval: 300
     filter: (?i)(?:[x×倍])\s*0\.\d+|0\.\d+\s*(?:[x×倍])|Test|6bcloud|起帆
+    # proxies:
+    #   - '🟢本地直连'
 
-  # 应用分流策略组
-
+  # AI 策略组
   - name: '🤖ChatGPT'
     type: select
     proxies:
@@ -209,11 +278,9 @@ proxy-groups:
       - '🍵日常低倍'
       - '📉下载专用'
       - '🟢本地直连'
-      - '🇭🇰香港节点'
-      - '🇹🇼台湾节点'
-      - '🇰🇷韩国节点'
-      - '🌎其他地区'
+    icon: "https://github.com/DustinWin/ruleset_geodata/releases/download/icons/ai.png"
 
+  # 应用分流策略组
   - name: '📹YouTube'
     type: select
     proxies:
@@ -222,13 +289,7 @@ proxy-groups:
       - '🍵日常低倍'
       - '🏠国外家宽'
       - '🟢本地直连'
-      - '🇭🇰香港节点'
-      - '🇹🇼台湾节点'
-      - '🇯🇵日本节点'
-      - '🇰🇷韩国节点'
-      - '🇸🇬新加坡节点'
-      - '🇺🇸美国节点'
-      - '🌎其他地区'
+    icon: "https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/YouTube.png"
 
   - name: '🍀Google'
     type: select
@@ -238,13 +299,6 @@ proxy-groups:
       - '🏠国外家宽'
       - '📉下载专用'
       - '🟢本地直连'
-      - '🇭🇰香港节点'
-      - '🇹🇼台湾节点'
-      - '🇯🇵日本节点'
-      - '🇰🇷韩国节点'
-      - '🇸🇬新加坡节点'
-      - '🇺🇸美国节点'
-      - '🌎其他地区'
 
   - name: '🎵TikTok'
     type: select
@@ -255,13 +309,7 @@ proxy-groups:
       - '🍵日常低倍'
       - '🏠国外家宽'
       - '🟢本地直连'
-      - '🇭🇰香港节点'
-      - '🇹🇼台湾节点'
-      - '🇯🇵日本节点'
-      - '🇰🇷韩国节点'
-      - '🇸🇬新加坡节点'
-      - '🇺🇸美国节点'
-      - '🌎其他地区'
+    icon: "https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/TikTok.png"
 
   - name: '👨🏿‍💻GitHub'
     type: select
@@ -282,6 +330,7 @@ proxy-groups:
       - '🍵日常低倍'
       - '🏠国外家宽'
       - '🟢本地直连'
+    icon: "https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/OneDrive.png"
 
   - name: '🪟Microsoft'
     type: select
@@ -312,6 +361,7 @@ proxy-groups:
       - '🍵日常低倍'
       - '🏠国外家宽'
       - '🟢本地直连'
+    icon: "https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Netflix.png"
 
   - name: '✈️Speedtest'
     type: select
@@ -322,6 +372,7 @@ proxy-groups:
       - '🍵日常低倍'
       - '🏠国外家宽'
       - '📉下载专用'
+    icon: "https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Speedtest.png"
 
   - name: '💶PayPal'
     type: select
@@ -350,6 +401,7 @@ proxy-groups:
       - '🏠国外家宽'
       - '📉下载专用'
       - '🟢本地直连'
+    icon: "https://testingcf.jsdelivr.net/gh/aihdde/Rules@master/icon/fish.png"
 
   # 地区节点组
   - name: '🇭🇰香港节点'
@@ -359,6 +411,9 @@ proxy-groups:
     interval: 86400
     tolerance: 50
     filter: 香港|HK|🇭🇰
+    # proxies:
+    #   - '🟢本地直连'
+    icon: "https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Hong_Kong.png"
 
   - name: '🇹🇼台湾节点'
     type: url-test
@@ -367,6 +422,8 @@ proxy-groups:
     interval: 86400
     tolerance: 50
     filter: 台湾|TW|🇹🇼
+    # proxies:
+    #   - '🟢本地直连'
 
   - name: '🇯🇵日本节点'
     type: url-test
@@ -375,6 +432,9 @@ proxy-groups:
     interval: 86400
     tolerance: 50
     filter: 日本|JP|🇯🇵
+    # proxies:
+    #   - '🟢本地直连'
+    icon: "https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Japan.png"
 
   - name: '🇰🇷韩国节点'
     type: url-test
@@ -383,6 +443,8 @@ proxy-groups:
     interval: 86400
     tolerance: 50
     filter: 韩国|KR|🇰🇷
+    # proxies:
+    #   - '🟢本地直连'
 
   - name: '🇸🇬新加坡节点'
     type: url-test
@@ -391,6 +453,9 @@ proxy-groups:
     interval: 86400
     tolerance: 50
     filter: 新加坡|SG|🇸🇬
+    # proxies:
+    #   - '🟢本地直连'
+    icon: "https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Singapore.png"
 
   - name: '🇺🇸美国节点'
     type: url-test
@@ -399,6 +464,9 @@ proxy-groups:
     interval: 86400
     tolerance: 50
     filter: 美国|US|🇺🇸
+    # proxies:
+    #   - '🟢本地直连'
+    icon: "https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/United_States.png"
 
   - name: '🌎其他地区'
     type: url-test
@@ -407,6 +475,8 @@ proxy-groups:
     interval: 86400
     tolerance: 50
     exclude-filter: (?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置|香港|HK|🇭🇰|台湾|TW|🇹🇼|日本|JP|🇯🇵|韩国|KR|🇰🇷|新加坡|SG|🇸🇬|美国|US|🇺🇸
+    # proxies:
+    #   - '🟢本地直连'
 
   # 自动选择
   - name: '♻️自动选择'
@@ -414,40 +484,178 @@ proxy-groups:
     include-all: true
     tolerance: 20
     interval: 300
-    filter: "^((?!(直连)).)*$"
+    # filter: "^((?!(直连)).)*$"
+    # proxies:
+    #   - '🟢本地直连'
 
-rule-anchor: # 规则锚点，用于引用规则集
-  ip: &ip {type: http, interval: 86400, behavior: ipcidr, format: mrs}
-  domain: &domain {type: http, interval: 86400, behavior: domain, format: mrs}
-  qcy: &qcy {type: http, interval: 86400, behavior: domain, format: text}
-  class: &class {type: http, interval: 86400, behavior: classical, format: text}
+# **=============================== 规则锚点 ===============================**
+rule-anchor:
+  ip: &ip 
+    type: http
+    interval: 86400
+    behavior: ipcidr
+    format: mrs
+  domain: &domain 
+    type: http
+    interval: 86400
+    behavior: domain
+    format: mrs
+  class: &class 
+    type: http
+    interval: 86400
+    behavior: classical
+    format: text
+  yaml: &yaml 
+    type: http
+    interval: 86400
+    behavior: domain
+    format: yaml
+  classical_yaml: &classical_yaml
+    type: http
+    interval: 86400
+    behavior: classical
+    format: yaml
 
-rule-providers: 
-  private_domain: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/private.mrs"}
-  proxylite: {!!merge <<: *qcy, url: "https://raw.githubusercontent.com/qcyhub/rule/master/ProxyLite.list"}
-  ai: {!!merge <<: *qcy, url: "https://raw.githubusercontent.com/qcyhub/rule/master/AI.list"}
-  youtube_domain: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/youtube.mrs"}
-  google_domain: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google.mrs"}
-  github_domain: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/github.mrs"}
-  telegram_domain: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/telegram.mrs"}
-  netflix_domain: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/netflix.mrs"}
-  paypal_domain: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/paypal.mrs"}
-  onedrive_domain: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/onedrive.mrs"}
-  microsoft_domain: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/microsoft.mrs"}
-  apple_domain: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/apple-cn.mrs"}
-  speedtest_domain: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/ookla-speedtest.mrs"}
-  tiktok_domain: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/tiktok.mrs"}
-  gfw_domain: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/gfw.mrs"}
-  geolocation-!cn: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/geolocation-!cn.mrs"}
-  cn_domain: {!!merge <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cn.mrs"}
-  
-  cn_ip: {!!merge <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/cn.mrs"}
-  google_ip: {!!merge <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/google.mrs"}
-  telegram_ip: {!!merge <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/telegram.mrs"}
-  netflix_ip: {!!merge <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/netflix.mrs"}
+# **=============================== 规则提供者 ===============================**
+rule-providers:
+  # 广告过滤
+  AWAvenue_Ads_Rule:
+    <<: *yaml
+    path: ./ruleset/AWAvenue_Ads_Rule_Clash.yaml
+    url: "https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main//Filters/AWAvenue-Ads-Rule-Clash.yaml"
 
+  # fake-ip 过滤
+  fake_ip_filter_DustinWin:
+    <<: *domain
+    path: ./ruleset/fake_ip_filter_DustinWin.mrs
+    url: "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/fakeip-filter.mrs"
+
+  # 直连类规则
+  private_domain:
+    <<: *domain
+    path: ./ruleset/private_domain.mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/private.mrs"
+    
+  cn_domain:
+    <<: *domain
+    path: ./ruleset/cn_domain.mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cn.mrs"
+    
+  cn_ip:
+    <<: *ip
+    path: ./ruleset/cn_ip.mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/cn.mrs"
+
+  # AI 规则
+  ai:
+    <<: *domain
+    path: ./ruleset/ai.mrs
+    url: "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/ai.mrs"
+
+  # 代理类规则
+  proxy:
+    <<: *domain
+    path: ./ruleset/proxy.mrs
+    url: "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/proxy.mrs"
+    
+  gfw_domain:
+    <<: *domain
+    path: ./ruleset/gfw_domain.mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/gfw.mrs"
+    
+  geolocation-!cn:
+    <<: *domain
+    path: ./ruleset/geolocation-!cn.mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/geolocation-!cn.mrs"
+
+  # 应用规则
+  github_domain:
+    <<: *domain
+    path: ./ruleset/github_domain.mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/github.mrs"
+    
+  youtube_domain:
+    <<: *domain
+    path: ./ruleset/youtube_domain.mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/youtube.mrs"
+    
+  google_domain:
+    <<: *domain
+    path: ./ruleset/google_domain.mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google.mrs"
+    
+  tiktok_domain:
+    <<: *domain
+    path: ./ruleset/tiktok_domain.mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/tiktok.mrs"
+    
+  telegram_domain:
+    <<: *yaml
+    path: ./ruleset/telegram_domain.yaml
+    url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Telegram/Telegram.yaml"
+    
+  telegram_ip:
+    <<: *ip
+    path: ./ruleset/telegram_ip.mrs
+    url: "https://github.com/DustinWin/ruleset_geodata/raw/refs/heads/mihomo-ruleset/telegramip.mrs"
+    
+  Telegram_No_Resolve:
+    <<: *classical_yaml
+    path: ./ruleset/Telegram_No_Resolve.yaml
+    url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Telegram/Telegram_No_Resolve.yaml"
+    
+  netflix_domain:
+    <<: *domain
+    path: ./ruleset/netflix_domain.mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/refs/heads/meta/geo/geosite/netflix.mrs"
+    
+  netflix_ip:
+    <<: *ip
+    path: ./ruleset/netflix_ip.mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/netflix.mrs"
+    
+  onedrive_domain:
+    <<: *domain
+    path: ./ruleset/onedrive_domain.mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/onedrive.mrs"
+    
+  microsoft_domain:
+    <<: *domain
+    path: ./ruleset/microsoft_domain.mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/microsoft.mrs"
+    
+  speedtest_domain:
+    <<: *domain
+    path: ./ruleset/speedtest_domain.mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/ookla-speedtest.mrs"
+    
+  paypal_domain:
+    <<: *domain
+    path: ./ruleset/paypal_domain.mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/paypal.mrs"
+    
+  apple_cn_domain:
+    <<: *domain
+    path: ./ruleset/apple_cn_domain.mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/apple-cn.mrs"
+
+  # IP 规则
+  google_ip:
+    <<: *ip
+    path: ./ruleset/google_ip.mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/google.mrs"
+    
+  geoip_cloudflare:
+    <<: *ip
+    path: ./ruleset/geoip_cloudflare.mrs
+    url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geoip/cloudflare.mrs"
+
+# **=============================== 规则设置 ===============================**
 rules:
-## 个人规则
+  # --- 拒绝/阻止类规则 (最高优先级，直接拦截) ---
+  - RULE-SET,AWAvenue_Ads_Rule,REJECT     # 秋风广告过滤
+
+  # --- 个人规则 ---
   - IP-CIDR,192.168.0.0/24,🟢本地直连
   - IP-CIDR,192.168.1.0/24,🟢本地直连
   - IP-CIDR,192.168.10.0/24,🟢本地直连
@@ -470,7 +678,6 @@ rules:
   - DOMAIN-SUFFIX,adobe.io,🟢本地直连
   - DOMAIN-SUFFIX,adobess.com,🟢本地直连
   - DOMAIN-SUFFIX,acgrip.com,🟢本地直连
-  # - DOMAIN-SUFFIX,auth0.com,🟢本地直连
   - DOMAIN-SUFFIX,cnki.net,🟢本地直连
   - DOMAIN-SUFFIX,cscecos.com,🟢本地直连
   - DOMAIN-SUFFIX,customercontrolpanel.de,🟢本地直连
@@ -479,17 +686,12 @@ rules:
   - DOMAIN-SUFFIX,googlevideo.com,🚀节点选择
   - DOMAIN-SUFFIX,mineru.net,🟢本地直连
   - DOMAIN-SUFFIX,mypikpak.com,📉下载专用
-  # - DOMAIN-SUFFIX,mypt.cc,🟢本地直连
   - DOMAIN-SUFFIX,nodeseek.com,🟢本地直连
   - DOMAIN-SUFFIX,icourse163.org,🟢本地直连
-  # - DOMAIN-SUFFIX,infini.money,🟢本地直连
   - DOMAIN-SUFFIX,ivcbt.com,🟢本地直连
   - DOMAIN-SUFFIX,linux.do,🟢本地直连
   - DOMAIN-SUFFIX,mihoyo.com,🟢本地直连
-  # - DOMAIN-SUFFIX,microsoft.com,🟢本地直连
   - DOMAIN-SUFFIX,netcup.com,🟢本地直连
-  # - DOMAIN-SUFFIX,oracle.com,🟢本地直连
-  # - DOMAIN-SUFFIX,oraclecloud.com,🟢本地直连
   - DOMAIN-SUFFIX,tendawifi.com,🟢本地直连
   - DOMAIN-SUFFIX,zhihu.com,🟢本地直连
   - DOMAIN-SUFFIX,zhimg.com,🟢本地直连
@@ -505,6 +707,62 @@ rules:
   - PROCESS-NAME,steam.exe,🟢本地直连
   - PROCESS-NAME,Wocalcscec.exe,🟢本地直连
 
+  # --- 精确的 IP 规则 (强制 no-resolve，防DNS泄漏) ---
+  - RULE-SET,cn_ip,🟢本地直连,no-resolve            # 国内 IP 优先直连
+  - RULE-SET,geoip_cloudflare,🤖ChatGPT,no-resolve  # Cloudflare IP 导向 AI
+  - RULE-SET,telegram_ip,📲Telegram,no-resolve      # Telegram IP 强制走代理
+  - RULE-SET,Telegram_No_Resolve,📲Telegram,no-resolve # Telegram 无需解析的规则
+  - RULE-SET,netflix_ip,🎥NETFLIX,no-resolve        # Netflix IP 走代理
+
+  # --- 精确的直连域名规则 ---
+  - RULE-SET,private_domain,🟢本地直连  # 自定义私有域名
+  - RULE-SET,cn_domain,🟢本地直连       # 中国大陆域名
+
+  # 苹果服务直连
+  - DOMAIN-SUFFIX,apple.com,🟢本地直连
+  - DOMAIN-SUFFIX,icloud.com,🟢本地直连
+  - DOMAIN-SUFFIX,cdn-apple.com,🟢本地直连
+  - RULE-SET,apple_cn_domain,🍎Apple
+  - DOMAIN-SUFFIX,ls.apple.com,🟢本地直连
+
+  # --- 特定服务规则 ---
+  - PROCESS-NAME-REGEX,.*telegram.*,📲Telegram
+
+  # AI 服务
+  - DOMAIN-SUFFIX,lingq.com,🤖ChatGPT
+  - DOMAIN-SUFFIX,youglish.com,🤖ChatGPT
+  - DOMAIN-SUFFIX,deepl.com,🤖ChatGPT
+  - DOMAIN-SUFFIX,chat.openai.com,🤖ChatGPT
+  - DOMAIN-SUFFIX,grammarly.com,🤖ChatGPT
+  - DOMAIN-KEYWORD,sci-hub,🤖ChatGPT
+  - RULE-SET,ai,🤖ChatGPT
+
+  # 学习平台
+  - DOMAIN-SUFFIX,edclub.com,🚀节点选择
+  - DOMAIN-SUFFIX,typingclub.com,🚀节点选择
+  - DOMAIN-SUFFIX,edclub-cdn.typingclub.com,🚀节点选择
+  - DOMAIN-SUFFIX,typingclub-cdn.typingclub.com,🚀节点选择
+  - DOMAIN-KEYWORD,typingclub,🚀节点选择
+
+  # 媒体服务
+  - RULE-SET,youtube_domain,📹YouTube
+  - RULE-SET,tiktok_domain,🎵TikTok
+  - RULE-SET,netflix_domain,🎥NETFLIX
+
+  # 其他服务
+  - RULE-SET,github_domain,👨🏿‍💻GitHub
+  - RULE-SET,onedrive_domain,🐬OneDrive
+  - RULE-SET,speedtest_domain,✈️Speedtest
+  - RULE-SET,telegram_domain,📲Telegram
+  - RULE-SET,paypal_domain,💶PayPal
+  - RULE-SET,microsoft_domain,🪟Microsoft
+  - RULE-SET,google_domain,🍀Google
+
+  # --- 通用代理规则 ---
+  - RULE-SET,gfw_domain,🚀节点选择 # 被GFW阻断的域名
+  - RULE-SET,geolocation-!cn,🚀节点选择 # 非中国大陆的地理位置流量
+  - RULE-SET,proxy,🚀节点选择 # 通用代理规则
+
   # 局域网和本地
   - DOMAIN-SUFFIX,local,🟢本地直连
   - IP-CIDR,127.0.0.0/8,🟢本地直连,no-resolve
@@ -512,26 +770,8 @@ rules:
   - IP-CIDR,10.0.0.0/8,🟢本地直连,no-resolve
   - IP-CIDR,172.16.0.0/12,🟢本地直连,no-resolve
   - IP-CIDR,172.24.0.0/12,🟢本地直连,no-resolve
-  
-  # 规则集
-  - RULE-SET,private_domain,🟢本地直连
-  - RULE-SET,apple_domain,🍎Apple
-  - RULE-SET,proxylite,🚀节点选择
-  - RULE-SET,ai,🤖ChatGPT
-  - RULE-SET,github_domain,👨🏿‍💻GitHub
-  - RULE-SET,youtube_domain,📹YouTube
-  - RULE-SET,google_domain,🍀Google
-  - RULE-SET,onedrive_domain,🐬OneDrive
-  - RULE-SET,microsoft_domain,🪟Microsoft
-  - RULE-SET,tiktok_domain,🎵TikTok
-  - RULE-SET,speedtest_domain,✈️Speedtest
-  - RULE-SET,telegram_domain,📲Telegram
-  - RULE-SET,netflix_domain,🎥NETFLIX
-  - RULE-SET,paypal_domain,💶PayPal
-  - RULE-SET,geolocation-!cn,🚀节点选择
-  - RULE-SET,cn_domain,🟢本地直连
+
   - RULE-SET,google_ip,🍀Google,no-resolve
-  - RULE-SET,netflix_ip,🎥NETFLIX,no-resolve
-  - RULE-SET,telegram_ip,📲Telegram,no-resolve
-  - RULE-SET,cn_ip,🟢本地直连
+
+  # --- 最终回退规则 ---
   - MATCH,🐟漏网之鱼
